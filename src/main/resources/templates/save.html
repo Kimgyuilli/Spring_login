@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>save</title>
+  <!--  jquery cdn  -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+</head>
+<body>
+
+<form action="/member/save" method="post">
+  <label>
+    이메일:
+    <input type="text" name="memberEmail" id="memberEmail" onblur="emailCheck()">
+  </label><br>
+  <p id = "check-result"></p>
+  <label>
+    비밀번호:
+    <input type="password" name="memberPassword">
+  </label><br>
+  <label>
+    이름:
+    <input type="text" name="memberName">
+  </label><br>
+  <input type="submit" value="회원가입">
+</form>
+</body>
+<script type="text/javascript">
+  const emailCheck = () => {
+    const email = document.getElementById('memberEmail').value;
+    const checkResult = document.getElementById('check-result');
+
+    console.log(email);
+    $.ajax({
+    //   요청방식: post, url: "email_check", 데이터: email
+      type: "POST",
+      url: "/member/email-check",
+      data: {
+        "memberEmail": email,
+      },
+      success: function (result) {
+        console.log("성공", result);
+        if (result === "ok"){
+          console.log("사용 가능");
+          checkResult.innerHTML = "사용 가능한 이메일";
+        } else {
+          console.log("이미 사용중인 이메일");
+          checkResult.innerHTML = "이미 사용중인 이메일";
+        }
+      },
+      error: function (err) {
+        console.log("error", err);
+      }
+    });
+  }
+</script>
+</html>
