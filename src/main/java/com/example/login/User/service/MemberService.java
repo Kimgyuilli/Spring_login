@@ -1,9 +1,9 @@
-package com.example.login.service;
+package com.example.login.User.service;
 
 
-import com.example.login.domain.MemberEntity;
-import com.example.login.dto.MemberDTO;
-import com.example.login.repository.MemberRepository;
+import com.example.login.User.domain.MemberEntity;
+import com.example.login.User.dto.MemberDTO;
+import com.example.login.User.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

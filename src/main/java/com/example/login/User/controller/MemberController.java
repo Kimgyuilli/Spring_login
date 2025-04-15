@@ -1,7 +1,7 @@
-package com.example.login.controller;
+package com.example.login.User.controller;
 
-import com.example.login.dto.MemberDTO;
-import com.example.login.service.MemberService;
+import com.example.login.User.dto.MemberDTO;
+import com.example.login.User.service.MemberService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
