@@ -1,7 +1,7 @@
-package com.example.member.controller;
+package com.example.login.controller;
 
-import com.example.member.dto.MemberDTO;
-import com.example.member.service.MemberService;
+import com.example.login.dto.MemberDTO;
+import com.example.login.service.MemberService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -35,8 +35,8 @@ public class MemberController {
 
     @PostMapping("/member/login")
     public String login(@ModelAttribute MemberDTO memberDTO, HttpSession session) {
-        MemberDTO loginResult  = memberService.login(memberDTO);
-        if(loginResult != null) {
+        MemberDTO loginResult = memberService.login(memberDTO);
+        if (loginResult != null) {
             // 로그인 성공
             session.setAttribute("loginEmail", loginResult.getMemberEmail());
             return "main";
@@ -47,7 +47,7 @@ public class MemberController {
     }
 
     @GetMapping("/member/")
-    public String findAll( Model model ) {
+    public String findAll(Model model) {
         List<MemberDTO> memberDTOList = memberService.findAll();
 //        어떠한 html로 가져갈 데이터가 있다면 model 사용
         model.addAttribute("memberList", memberDTOList);

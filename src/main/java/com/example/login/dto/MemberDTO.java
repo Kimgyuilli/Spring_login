@@ -1,6 +1,6 @@
-package com.example.member.dto;
+package com.example.login.dto;
 
-import com.example.member.domain.MemberEntity;
+import com.example.login.domain.MemberEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

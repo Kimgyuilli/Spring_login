@@ -1,6 +1,6 @@
-package com.example.member.domain;
+package com.example.login.domain;
 
-import com.example.member.dto.MemberDTO;
+import com.example.login.dto.MemberDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

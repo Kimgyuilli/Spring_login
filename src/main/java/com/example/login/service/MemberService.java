@@ -1,9 +1,9 @@
-package com.example.member.service;
+package com.example.login.service;
 
 
-import com.example.member.domain.MemberEntity;
-import com.example.member.dto.MemberDTO;
-import com.example.member.repository.MemberRepository;
+import com.example.login.domain.MemberEntity;
+import com.example.login.dto.MemberDTO;
+import com.example.login.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,19 +26,19 @@ public class MemberService {
 //        1. 회원이 입력한 이메일로 DB 조회
 //        2. DB에서 조회한 비밀번호와 사용자가 입력한 비밀번호 일치 확인
         Optional<MemberEntity> byMemberEmail = memberRepository.findByMemberEmail(memberDTO.getMemberEmail());
-        if(byMemberEmail.isPresent()) {
+        if (byMemberEmail.isPresent()) {
 //            조회 결과가 있으면
             MemberEntity memberEntity = byMemberEmail.get();
-            if(memberEntity.getMemberPassword().equals(memberDTO.getMemberPassword())) {
+            if (memberEntity.getMemberPassword().equals(memberDTO.getMemberPassword())) {
                 // 비밀번호 일치
                 // entity -> dto 변환
                 MemberDTO dto = MemberDTO.toMemberDTO(memberEntity);
                 return dto;
-            } else{
+            } else {
                 // 비밀번호 불일치(로그인 실패)
                 return null;
             }
-        } else{
+        } else {
 
 //            조회 결과가 없으면
             return null;
@@ -48,14 +48,14 @@ public class MemberService {
     public List<MemberDTO> findAll() {
         List<MemberEntity> memberEntityList = memberRepository.findAll();
         List<MemberDTO> memberDTOList = new ArrayList<>();
-        for(MemberEntity memberEntity : memberEntityList) {
+        for (MemberEntity memberEntity : memberEntityList) {
             memberDTOList.add(MemberDTO.toMemberDTO(memberEntity));
         }
         return memberDTOList;
     }
 
     public MemberDTO findById(Long id) {
-        Optional<MemberEntity>  optionalMemberEntity = memberRepository.findById(id);
+        Optional<MemberEntity> optionalMemberEntity = memberRepository.findById(id);
         if (optionalMemberEntity.isPresent()) {
             return MemberDTO.toMemberDTO(optionalMemberEntity.get());
         } else {
@@ -82,7 +82,7 @@ public class MemberService {
 
     public String emailCheck(String memberEmail) {
         Optional<MemberEntity> optionalMemberEntity = memberRepository.findByMemberEmail(memberEmail);
-        if(optionalMemberEntity.isPresent()) {
+        if (optionalMemberEntity.isPresent()) {
             // 조회결과 존재 -> 사용 불가
             return null;
         } else {
