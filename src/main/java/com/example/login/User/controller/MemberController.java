@@ -1,6 +1,9 @@
 package com.example.login.User.controller;
 
 import com.example.login.User.dto.MemberDTO;
+import com.example.login.User.dto.request.MemberLoginReq;
+import com.example.login.User.dto.request.MemberSaveReq;
+import com.example.login.User.dto.response.MemberLoginRes;
 import com.example.login.User.service.MemberService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +25,9 @@ public class MemberController {
     }
 
     @PostMapping("/member/save")
-    public String save(@ModelAttribute MemberDTO memberDTO) {
-        System.out.println(memberDTO);
-        memberService.save(memberDTO);
+    public String save(@ModelAttribute MemberSaveReq req) {
+        System.out.println(req);
+        memberService.save(req);
         return "login";
     }
 
@@ -34,8 +37,8 @@ public class MemberController {
     }
 
     @PostMapping("/member/login")
-    public String login(@ModelAttribute MemberDTO memberDTO, HttpSession session) {
-        MemberDTO loginResult = memberService.login(memberDTO);
+    public String login(@ModelAttribute MemberLoginReq req, HttpSession session) {
+        MemberLoginRes loginResult = memberService.login(req);
         if (loginResult != null) {
             // 로그인 성공
             session.setAttribute("loginEmail", loginResult.getMemberEmail());

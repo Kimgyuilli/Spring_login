@@ -3,12 +3,14 @@ package com.example.login.User.domain;
 import com.example.login.Common.entity.BaseTimeEntity;
 import com.example.login.User.dto.MemberDTO;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
-@Setter
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "member_table")
 public class MemberEntity extends BaseTimeEntity {
     @Id
@@ -24,21 +26,20 @@ public class MemberEntity extends BaseTimeEntity {
     @Column
     private String memberPassword;
 
-
-    public static MemberEntity toMemberEntity(MemberDTO memberDTO) {
-        MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setMemberEmail(memberDTO.getMemberEmail());
-        memberEntity.setMemberName(memberDTO.getMemberName());
-        memberEntity.setMemberPassword(memberDTO.getMemberPassword());
-        return memberEntity;
+    public static MemberEntity toMemberEntity(String email, String name, String password) {
+        return MemberEntity.builder()
+                .memberEmail(email)
+                .memberName(name)
+                .memberPassword(password)
+                .build();
     }
 
     public static MemberEntity toUpdateMemberEntity(MemberDTO memberDTO) {
-        MemberEntity memberEntity = new MemberEntity();
-        memberEntity.setId(memberDTO.getId());
-        memberEntity.setMemberEmail(memberDTO.getMemberEmail());
-        memberEntity.setMemberName(memberDTO.getMemberName());
-        memberEntity.setMemberPassword(memberDTO.getMemberPassword());
-        return memberEntity;
+        return MemberEntity.builder()
+                .id(memberDTO.getId())
+                .memberEmail(memberDTO.getMemberEmail())
+                .memberName(memberDTO.getMemberName())
+                .memberPassword(memberDTO.getMemberPassword())
+                .build();
     }
 }

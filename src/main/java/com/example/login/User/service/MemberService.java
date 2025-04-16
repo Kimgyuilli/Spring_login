@@ -3,6 +3,9 @@ package com.example.login.User.service;
 
 import com.example.login.User.domain.MemberEntity;
 import com.example.login.User.dto.MemberDTO;
+import com.example.login.User.dto.request.MemberLoginReq;
+import com.example.login.User.dto.request.MemberSaveReq;
+import com.example.login.User.dto.response.MemberLoginRes;
 import com.example.login.User.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,33 +19,27 @@ import java.util.Optional;
 public class MemberService {
     private final MemberRepository memberRepository;
 
-    public void save(MemberDTO memberDTO) {
-        MemberEntity memberEntity = MemberEntity.toMemberEntity(memberDTO);
+    public void save(MemberSaveReq req) {
+        MemberEntity memberEntity = MemberEntity.toMemberEntity(req.getMemberEmail(), req.getMemberName(), req.getMemberPassword());
         memberRepository.save(memberEntity);
 
     }
 
-    public MemberDTO login(MemberDTO memberDTO) {
-//        1. 회원이 입력한 이메일로 DB 조회
-//        2. DB에서 조회한 비밀번호와 사용자가 입력한 비밀번호 일치 확인
-        Optional<MemberEntity> byMemberEmail = memberRepository.findByMemberEmail(memberDTO.getMemberEmail());
-        if (byMemberEmail.isPresent()) {
-//            조회 결과가 있으면
-            MemberEntity memberEntity = byMemberEmail.get();
-            if (memberEntity.getMemberPassword().equals(memberDTO.getMemberPassword())) {
-                // 비밀번호 일치
-                // entity -> dto 변환
-                MemberDTO dto = MemberDTO.toMemberDTO(memberEntity);
-                return dto;
-            } else {
-                // 비밀번호 불일치(로그인 실패)
-                return null;
-            }
-        } else {
+    public MemberLoginRes login(MemberLoginReq request) {
+        Optional<MemberEntity> memberOpt = memberRepository.findByMemberEmail(request.getMemberEmail());
 
-//            조회 결과가 없으면
-            return null;
+        if (memberOpt.isPresent()) {
+            MemberEntity entity = memberOpt.get();
+            if (entity.getMemberPassword().equals(request.getMemberPassword())) {
+                return new MemberLoginRes(
+                        entity.getId(),
+                        entity.getMemberEmail(),
+                        entity.getMemberName()
+                );
+            }
         }
+
+        return null; // or throw exception
     }
 
     public List<MemberDTO> findAll() {
@@ -56,20 +53,12 @@ public class MemberService {
 
     public MemberDTO findById(Long id) {
         Optional<MemberEntity> optionalMemberEntity = memberRepository.findById(id);
-        if (optionalMemberEntity.isPresent()) {
-            return MemberDTO.toMemberDTO(optionalMemberEntity.get());
-        } else {
-            return null;
-        }
+        return optionalMemberEntity.map(MemberDTO::toMemberDTO).orElse(null);
     }
 
     public MemberDTO updateForm(String myEmail) {
         Optional<MemberEntity> optionalMemberEntity = memberRepository.findByMemberEmail(myEmail);
-        if (optionalMemberEntity.isPresent()) {
-            return MemberDTO.toMemberDTO(optionalMemberEntity.get());
-        } else {
-            return null;
-        }
+        return optionalMemberEntity.map(MemberDTO::toMemberDTO).orElse(null);
     }
 
     public void update(MemberDTO memberDTO) {
