@@ -1,5 +1,6 @@
 package com.example.login.User.controller;
 
+import com.example.login.Common.exception.BaseException;
 import com.example.login.User.dto.request.MemberLoginReq;
 import com.example.login.User.dto.request.MemberSaveReq;
 import com.example.login.User.dto.request.MemberUpdateReq;
@@ -41,7 +42,7 @@ public class MemberController {
             memberService.save(req);
             model.addAttribute("memberLoginReq", new MemberLoginReq());
             return "login";
-        } catch (IllegalStateException e) {
+        } catch (BaseException e) {
             model.addAttribute("errorMessage", e.getMessage());
             return "save"; // 회원가입 폼으로 다시 이동
         }

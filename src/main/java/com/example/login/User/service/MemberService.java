@@ -1,6 +1,8 @@
 package com.example.login.User.service;
 
 
+import com.example.login.Common.exception.BaseException;
+import com.example.login.Common.exception.ErrorCode;
 import com.example.login.User.domain.MemberEntity;
 import com.example.login.User.dto.request.MemberLoginReq;
 import com.example.login.User.dto.request.MemberSaveReq;
@@ -24,7 +26,7 @@ public class MemberService {
         // 중복 이메일 체크
         boolean exists = memberRepository.findByMemberEmail(req.getMemberEmail()).isPresent();
         if (exists) {
-            throw new IllegalStateException("이미 사용 중인 이메일입니다.");
+            throw new BaseException(ErrorCode.DUPLICATE_EMAIL);
         }
 
         MemberEntity memberEntity = MemberEntity.toMemberEntity(req.getMemberEmail(), req.getMemberName(), req.getMemberPassword());
