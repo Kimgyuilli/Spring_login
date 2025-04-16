@@ -13,6 +13,12 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: ${REDIS_PASSWORD}
+
   jpa:
     hibernate:
       ddl-auto: update # 운영에서는 validate 추천
