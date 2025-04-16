@@ -1,7 +1,6 @@
 package com.example.login.User.domain;
 
 import com.example.login.Common.entity.BaseTimeEntity;
-import com.example.login.User.dto.MemberDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,12 +33,12 @@ public class MemberEntity extends BaseTimeEntity {
                 .build();
     }
 
-    public static MemberEntity toUpdateMemberEntity(MemberDTO memberDTO) {
+    public static MemberEntity toUpdateMemberEntity(Long id, String email, String name, String password) {
         return MemberEntity.builder()
-                .id(memberDTO.getId())
-                .memberEmail(memberDTO.getMemberEmail())
-                .memberName(memberDTO.getMemberName())
-                .memberPassword(memberDTO.getMemberPassword())
+                .id(id)
+                .memberEmail(email)
+                .memberName(name)
+                .memberPassword(password)
                 .build();
     }
 }

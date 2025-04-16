@@ -2,10 +2,11 @@ package com.example.login.User.service;
 
 
 import com.example.login.User.domain.MemberEntity;
-import com.example.login.User.dto.MemberDTO;
 import com.example.login.User.dto.request.MemberLoginReq;
 import com.example.login.User.dto.request.MemberSaveReq;
+import com.example.login.User.dto.request.MemberUpdateReq;
 import com.example.login.User.dto.response.MemberLoginRes;
+import com.example.login.User.dto.response.MemberRes;
 import com.example.login.User.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,12 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     public void save(MemberSaveReq req) {
+        // 중복 이메일 체크
+        boolean exists = memberRepository.findByMemberEmail(req.getMemberEmail()).isPresent();
+        if (exists) {
+            throw new IllegalStateException("이미 사용 중인 이메일입니다.");
+        }
+
         MemberEntity memberEntity = MemberEntity.toMemberEntity(req.getMemberEmail(), req.getMemberName(), req.getMemberPassword());
         memberRepository.save(memberEntity);
 
@@ -42,27 +49,27 @@ public class MemberService {
         return null; // or throw exception
     }
 
-    public List<MemberDTO> findAll() {
+    public List<MemberRes> findAll() {
         List<MemberEntity> memberEntityList = memberRepository.findAll();
-        List<MemberDTO> memberDTOList = new ArrayList<>();
+        List<MemberRes> memberDTOList = new ArrayList<>();
         for (MemberEntity memberEntity : memberEntityList) {
-            memberDTOList.add(MemberDTO.toMemberDTO(memberEntity));
+            memberDTOList.add(MemberRes.toMemberDTO(memberEntity));
         }
         return memberDTOList;
     }
 
-    public MemberDTO findById(Long id) {
+    public MemberRes findById(Long id) {
         Optional<MemberEntity> optionalMemberEntity = memberRepository.findById(id);
-        return optionalMemberEntity.map(MemberDTO::toMemberDTO).orElse(null);
+        return optionalMemberEntity.map(MemberRes::toMemberDTO).orElse(null);
     }
 
-    public MemberDTO updateForm(String myEmail) {
+    public MemberRes updateForm(String myEmail) {
         Optional<MemberEntity> optionalMemberEntity = memberRepository.findByMemberEmail(myEmail);
-        return optionalMemberEntity.map(MemberDTO::toMemberDTO).orElse(null);
+        return optionalMemberEntity.map(MemberRes::toMemberDTO).orElse(null);
     }
 
-    public void update(MemberDTO memberDTO) {
-        memberRepository.save(MemberEntity.toUpdateMemberEntity(memberDTO));
+    public void update(MemberUpdateReq req) {
+        memberRepository.save(MemberEntity.toUpdateMemberEntity(req.getId(), req.getMemberEmail(), req.getMemberName(), req.getMemberPassword()));
     }
 
     public void deleteById(Long id) {

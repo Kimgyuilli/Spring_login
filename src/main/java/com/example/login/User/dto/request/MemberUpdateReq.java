@@ -5,7 +5,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MemberSaveReq {
+public class MemberUpdateReq {
+    private Long id;
     private String memberEmail;
     private String memberName;
     private String memberPassword;
