@@ -195,4 +195,26 @@ tmp/
 # 환경 변수 파일은 예시만 공개
 .env
 !.env.example
+
+### PostgreSQL ###
+# Docker volume mount 시 생성되는 로컬 데이터 디렉토리
+postgres-data/
+pgdata/
+# DB 백업 및 민감 정보
+*.pgpass
+*.pgsql
+*.sql
+
+### Redis ###
+# Redis data/log/pid 디렉토리
+redis-data/
+redis/
+*.rdb
+*.aof
+*.log
+*.pid
+
+# 예: redis.conf 사용 시
+redis.conf
+
 # End of https://www.toptal.com/developers/gitignore/api/intellij,git,java,gradle
