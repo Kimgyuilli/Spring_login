@@ -182,5 +182,17 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
+### Docker ###
+docker-compose.yml.lck
+docker-compose.override.yml
+
+docker-data/
+docker-volumes/
+docker-cache/
+logs/
+tmp/
+
+# 환경 변수 파일은 예시만 공개
 .env
+!.env.example
 # End of https://www.toptal.com/developers/gitignore/api/intellij,git,java,gradle
