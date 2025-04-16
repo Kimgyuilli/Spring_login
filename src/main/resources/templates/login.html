@@ -1,14 +1,32 @@
-<html lang="en">
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>login</title>
+    <title>로그인</title>
 </head>
 <body>
-<form action="/member/login" method="post">
-    이메일: <input type="text" name="memberEmail"> <br>
-    비밀번호: <input type="password" name="memberPassword"> <br>
+
+<h2>로그인</h2>
+
+<form action="/member/login" method="post" th:object="${memberLoginReq}">
+    <!-- 로그인 실패 메시지 -->
+    <p th:if="${loginError}" th:text="${loginError}" style="color:red;"></p>
+
+    <!-- 이메일 -->
+    <label>이메일:
+        <input type="text" th:field="*{memberEmail}">
+    </label><br>
+    <p th:if="${#fields.hasErrors('memberEmail')}" th:errors="*{memberEmail}" style="color:red;"></p>
+
+    <!-- 비밀번호 -->
+    <label>비밀번호:
+        <input type="password" th:field="*{memberPassword}">
+    </label><br>
+    <p th:if="${#fields.hasErrors('memberPassword')}" th:errors="*{memberPassword}" style="color:red;"></p>
+
     <input type="submit" value="로그인">
 </form>
+
 </body>
 </html>
