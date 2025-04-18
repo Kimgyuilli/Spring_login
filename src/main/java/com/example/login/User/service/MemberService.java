@@ -4,6 +4,7 @@ package com.example.login.User.service;
 import com.example.login.Common.exception.BaseException;
 import com.example.login.Common.exception.ErrorCode;
 import com.example.login.User.domain.MemberEntity;
+import com.example.login.User.domain.Role;
 import com.example.login.User.dto.request.MemberLoginReq;
 import com.example.login.User.dto.request.MemberSaveReq;
 import com.example.login.User.dto.request.MemberUpdateReq;
@@ -29,7 +30,7 @@ public class MemberService {
             throw new BaseException(ErrorCode.DUPLICATE_EMAIL);
         }
 
-        MemberEntity memberEntity = MemberEntity.toMemberEntity(req.getMemberEmail(), req.getMemberName(), req.getMemberPassword());
+        MemberEntity memberEntity = MemberEntity.toMemberEntity(req.getMemberEmail(), req.getMemberName(), req.getMemberPassword(), Role.ADMIN);
         memberRepository.save(memberEntity);
 
     }
@@ -71,7 +72,7 @@ public class MemberService {
     }
 
     public void update(MemberUpdateReq req) {
-        memberRepository.save(MemberEntity.toUpdateMemberEntity(req.getId(), req.getMemberEmail(), req.getMemberName(), req.getMemberPassword()));
+        memberRepository.save(MemberEntity.toUpdateMemberEntity(req.getId(), req.getMemberEmail(), req.getMemberName(), req.getMemberPassword(), Role.ADMIN));
     }
 
     public void deleteById(Long id) {

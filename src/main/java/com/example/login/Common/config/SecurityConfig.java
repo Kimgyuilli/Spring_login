@@ -1,9 +1,13 @@
 package com.example.login.Common.config;
 
+import com.example.login.Common.jwt.LoginFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -11,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.Collections;
@@ -23,12 +28,12 @@ public class SecurityConfig {
 
     // 🔐 JWT 필터 - 추후 구현
     // private final JWTUtil jwtUtil;
-    // private final FlowfitJWTFilter jwtFilter;
+    private final ObjectMapper objectMapper;
 
-    // 🔐 로그아웃 필터 및 예외 처리 필터 - 추후 구현
-    // private final FlowfitLogoutFilter logoutFilter;
-    // private final FlowfitAuthExceptionFilter authExceptionFilter;
-    // private final ObjectMapper objectMapper;
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -36,7 +41,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public LoginFilter loginFilter(AuthenticationManager authManager) {
+        LoginFilter filter = new LoginFilter(authManager, objectMapper);
+        filter.setFilterProcessesUrl("/member/login"); // 로그인 처리 경로 지정
+        return filter;
+    }
+
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginFilter loginFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -58,11 +71,8 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/member/save",    // 회원가입
-                                "/member/login",   // 로그인
-                                "/favicon.ico"     // 기본 자원
-                        ).permitAll()
+                        .requestMatchers("/", "/member", "/member/save", "/member/login", "/favicon.ico").permitAll()
+                        .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
 
@@ -72,6 +82,8 @@ public class SecurityConfig {
                         )
                 );
 
+
+        http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
         // ✅ 현재는 생략, 나중에 활성화 가능
         // http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         // http.addFilterAfter(authExceptionFilter, CorsFilter.class);
