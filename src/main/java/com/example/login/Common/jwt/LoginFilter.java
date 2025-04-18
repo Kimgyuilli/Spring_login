@@ -1,6 +1,9 @@
 package com.example.login.Common.jwt;
 
+import com.example.login.Common.exception.ErrorCode;
+import com.example.login.Common.response.LoginErrorResponse;
 import com.example.login.User.dto.request.MemberLoginReq;
+import com.example.login.User.security.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,15 +13,20 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.util.Map;
 
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
     private final ObjectMapper objectMapper;
+    private final JWTUtil jwtUtil;
+
+
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
@@ -37,15 +45,38 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         }
     }
 
-    //로그인 성공시 실행하는 메소드 (여기서 JWT를 발급하면 됨)
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) {
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+                                            FilterChain chain, Authentication authentication) {
 
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        String accessToken = jwtUtil.createAccessToken(
+                customUserDetails.getMember().getId().toString(),
+                customUserDetails.getMember().getRole(),
+                customUserDetails.getMember().getMemberEmail()
+        );
+
+        String refreshToken = jwtUtil.createRefreshToken(
+                customUserDetails.getMember().getId().toString(),
+                customUserDetails.getMember().getRole(),
+                customUserDetails.getMember().getMemberEmail()
+        );
+
+        // Access Token은 헤더에
+        response.addHeader("Authorization", "Bearer " + accessToken);
+
+        // Refresh Token은 HttpOnly Cookie로
+        response.addHeader("Set-Cookie", jwtUtil.createRefreshTokenCookie(refreshToken).toString());
     }
 
-    //로그인 실패시 실행하는 메소드
     @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) {
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
+        response.setStatus(ErrorCode.LOGIN_FAIL.getStatus().value());
+        response.setContentType("application/json; charset=UTF-8");
 
+        LoginErrorResponse errorResponse = new LoginErrorResponse(ErrorCode.LOGIN_FAIL);
+        String json = objectMapper.writeValueAsString(errorResponse);
+        response.getWriter().write(json);
     }
 }

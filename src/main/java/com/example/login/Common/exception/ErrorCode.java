@@ -10,6 +10,7 @@ public enum ErrorCode {
     LOGIN_FAIL(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 틀렸습니다."),
     INVALID_ROLE(HttpStatus.BAD_REQUEST, "역할은 USER 또는 ADMIN 중 하나여야 합니다.");
 
+
     private final HttpStatus status;
     private final String message;
 

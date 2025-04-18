@@ -52,9 +52,9 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 
 	// JWT (JSON Web Token) 관련 라이브러리
-	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
-	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
-	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.12.5'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
 	// === API 문서화 및 유효성 검사 ===
 

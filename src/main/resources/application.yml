@@ -21,11 +21,16 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update # 운영에서는 validate 추천
+      ddl-auto: create # 운영에서는 validate 추천
     show-sql: true
     properties:
       hibernate:
         format_sql: true
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION}
 
 logging:
   level:

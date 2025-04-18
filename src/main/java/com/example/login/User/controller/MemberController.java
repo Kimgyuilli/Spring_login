@@ -34,19 +34,26 @@ public class MemberController {
     @PostMapping("/member/save")
     public String save(@ModelAttribute @Valid MemberSaveReq req,
                        BindingResult bindingResult, Model model) {
+        System.out.println("[Controller] save() 요청 들어옴");
 
         if (bindingResult.hasErrors()) {
+            System.out.println("[Controller] 유효성 오류 목록:");
+            bindingResult.getAllErrors().forEach(error -> {
+                System.out.println(" - " + error.getDefaultMessage());
+            });
             model.addAttribute("memberSaveReq", req);
-            return "save"; // 유효성 에러가 있으면 회원가입 페이지로 다시
+            return "save";
         }
 
+
         try {
+            System.out.println("[Controller] memberService.save() 호출");
             memberService.save(req);
             model.addAttribute("memberLoginReq", new MemberLoginReq());
             return "login";
         } catch (BaseException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            return "save"; // 회원가입 폼으로 다시 이동
+            System.out.println("[Controller] 예외 발생: " + e.getMessage());
+            return "save";
         }
     }
 
@@ -62,13 +69,16 @@ public class MemberController {
                         BindingResult bindingResult,
                         HttpSession session,
                         Model model) {
+        System.out.println("[Controller] login() 요청 들어옴");
         if (bindingResult.hasErrors()) {
+            model.addAttribute("memberLoginReq", req);
             return "login"; // 유효성 실패 시 로그인 폼으로
         }
 
         MemberLoginRes loginResult = memberService.login(req);
         if (loginResult != null) {
             session.setAttribute("loginEmail", loginResult.getMemberEmail());
+            model.addAttribute("memberLoginReq", req);
             return "main";
         } else {
             model.addAttribute("loginError", "이메일 또는 비밀번호가 틀렸습니다.");

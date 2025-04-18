@@ -1,5 +1,6 @@
 package com.example.login.Common.config;
 
+import com.example.login.Common.jwt.JWTUtil;
 import com.example.login.Common.jwt.LoginFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -27,7 +28,7 @@ import java.util.List;
 public class SecurityConfig {
 
     // 🔐 JWT 필터 - 추후 구현
-    // private final JWTUtil jwtUtil;
+    private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
 
     @Bean
@@ -40,16 +41,13 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public LoginFilter loginFilter(AuthenticationManager authManager) {
-        LoginFilter filter = new LoginFilter(authManager, objectMapper);
-        filter.setFilterProcessesUrl("/member/login"); // 로그인 처리 경로 지정
-        return filter;
-    }
-
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, LoginFilter loginFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
+
+        LoginFilter loginFilter = new LoginFilter(authManager, objectMapper, jwtUtil);
+        loginFilter.setFilterProcessesUrl("/member/login");
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
@@ -57,8 +55,8 @@ public class SecurityConfig {
 
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOriginPatterns(List.of("*"));  // 모든 Origin 허용 (개발용)
-                    config.setAllowedMethods(Collections.singletonList("*"));  // 모든 HTTP 메서드 허용
+                    config.setAllowedOriginPatterns(List.of("*"));
+                    config.setAllowedMethods(Collections.singletonList("*"));
                     config.setAllowCredentials(true);
                     config.setAllowedHeaders(Collections.singletonList("*"));
                     config.setExposedHeaders(Collections.singletonList("Authorization"));
@@ -67,24 +65,21 @@ public class SecurityConfig {
                 }))
 
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)  // 세션 사용 안 함
-                )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/member", "/member/save", "/member/login", "/favicon.ico").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
 
                 .exceptionHandling(except -> except
                         .authenticationEntryPoint((request, response, authException) ->
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
-                        )
-                );
+                        ));
 
 
         http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
-        // ✅ 현재는 생략, 나중에 활성화 가능
+        // 현재는 생략, 나중에 활성화 가능
         // http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         // http.addFilterAfter(authExceptionFilter, CorsFilter.class);
         // http.addFilterAt(logoutFilter, LogoutFilter.class);
