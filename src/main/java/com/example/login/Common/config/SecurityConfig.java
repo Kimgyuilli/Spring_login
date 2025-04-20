@@ -1,6 +1,7 @@
 package com.example.login.Common.config;
 
 import com.example.login.Common.jwt.JWTUtil;
+import com.example.login.Common.jwt.JwtAuthenticationFilter;
 import com.example.login.Common.jwt.LoginFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -79,10 +80,8 @@ public class SecurityConfig {
 
 
         http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
-        // 현재는 생략, 나중에 활성화 가능
-        // http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-        // http.addFilterAfter(authExceptionFilter, CorsFilter.class);
-        // http.addFilterAt(logoutFilter, LogoutFilter.class);
+        http.addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }
