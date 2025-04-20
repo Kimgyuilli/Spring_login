@@ -64,7 +64,33 @@ public class AuthController {
                 .body("로그인 성공");
     }
 
+    // Access Token 재발급
     @PostMapping("/token/refresh")
+    public ResponseEntity<?> refreshAccessToken(HttpServletRequest request) {
+        String refreshToken = jwtUtil.extractRefreshToken(request);
+
+        if (refreshToken == null || !jwtUtil.validateToken(refreshToken, "refresh")) {
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("유효하지 않은 리프레시 토큰");
+        }
+
+        String memberId = jwtUtil.getId(refreshToken);
+        RefreshToken stored = refreshTokenRepository.findById(memberId).orElse(null);
+
+        if (stored == null || !stored.getToken().equals(refreshToken)) {
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("저장된 리프레시 토큰과 일치하지 않습니다.");
+        }
+
+        String email = jwtUtil.getEmail(refreshToken);
+        Role role = jwtUtil.getRole(refreshToken);
+        String newAccessToken = jwtUtil.createAccessToken(memberId, role, email);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
+                .body("Access 토큰 재발급 완료");
+    }
+
+    // Refresh Token을 포함한 Access Token 재발급
+    @PostMapping("/token/refresh/full")
     public ResponseEntity<?> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtUtil.extractRefreshToken(request);
 
