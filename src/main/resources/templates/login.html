@@ -1,32 +1,64 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>로그인</title>
 </head>
 <body>
-
 <h2>로그인</h2>
 
-<form action="/member/login" method="post" th:object="${memberLoginReq}">
-    <!-- 로그인 실패 메시지 -->
-    <p th:if="${loginError}" th:text="${loginError}" style="color:red;"></p>
+<!-- 오류 메시지 표시 -->
+<p id="error-message" style="color:red;"></p>
 
-    <!-- 이메일 -->
+<!-- 로그인 form -->
+<form id="login-form">
     <label>이메일:
-        <input type="text" th:field="*{memberEmail}">
+        <input type="text" id="email">
     </label><br>
-    <p th:if="${#fields.hasErrors('memberEmail')}" th:errors="*{memberEmail}" style="color:red;"></p>
-
-    <!-- 비밀번호 -->
     <label>비밀번호:
-        <input type="password" th:field="*{memberPassword}">
+        <input type="password" id="password">
     </label><br>
-    <p th:if="${#fields.hasErrors('memberPassword')}" th:errors="*{memberPassword}" style="color:red;"></p>
-
-    <input type="submit" value="로그인">
+    <button type="submit">로그인</button>
 </form>
+
+<script>
+    document.getElementById("login-form").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        try {
+            const res = await fetch("/member/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    memberEmail: email,
+                    memberPassword: password
+                })
+            });
+
+            if (res.ok) {
+                const token = res.headers.get("Authorization");
+                console.log("Access Token:", token);
+
+                // (선택) localStorage 또는 sessionStorage 저장
+                localStorage.setItem("accessToken", token);
+
+                // 성공 시 리디렉션
+                window.location.href = "/main"; // 성공 페이지
+            } else {
+                const message = await res.text();
+                document.getElementById("error-message").innerText = "로그인 실패: " + message;
+            }
+        } catch (error) {
+            console.error("에러 발생:", error);
+            document.getElementById("error-message").innerText = "요청 실패";
+        }
+    });
+</script>
 
 </body>
 </html>

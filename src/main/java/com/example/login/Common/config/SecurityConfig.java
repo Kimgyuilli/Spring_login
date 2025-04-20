@@ -3,6 +3,7 @@ package com.example.login.Common.config;
 import com.example.login.Common.jwt.JWTUtil;
 import com.example.login.Common.jwt.JwtAuthenticationFilter;
 import com.example.login.Common.jwt.LoginFilter;
+import com.example.login.Refresh.service.RefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,8 @@ public class SecurityConfig {
 
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
+    private final RefreshTokenService refreshTokenService;
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -45,7 +48,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
 
-        LoginFilter loginFilter = new LoginFilter(authManager, objectMapper, jwtUtil);
+        LoginFilter loginFilter = new LoginFilter(authManager, objectMapper, jwtUtil, refreshTokenService);
         loginFilter.setFilterProcessesUrl("/member/login");
 
         http

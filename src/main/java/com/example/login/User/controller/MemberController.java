@@ -2,6 +2,9 @@ package com.example.login.User.controller;
 
 import com.example.login.Common.exception.BaseException;
 import com.example.login.Common.jwt.JWTUtil;
+import com.example.login.Refresh.Entity.RefreshToken;
+import com.example.login.Refresh.repository.RefreshTokenRepository;
+import com.example.login.Refresh.service.RefreshTokenService;
 import com.example.login.User.domain.Role;
 import com.example.login.User.dto.request.MemberLoginReq;
 import com.example.login.User.dto.request.MemberSaveReq;
@@ -29,6 +32,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MemberController {
 
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenService refreshTokenService;
     private final MemberService memberService;
     private final JWTUtil jwtUtil;
 
@@ -40,16 +45,32 @@ public class MemberController {
             return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("유효하지 않은 리프레시 토큰");
         }
 
-        String id = jwtUtil.getId(refreshToken);
+        String memberId = jwtUtil.getId(refreshToken);
+        RefreshToken stored = refreshTokenRepository.findById(memberId).orElse(null);
+
+        if (stored == null || !stored.getToken().equals(refreshToken)) {
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("저장된 리프레시 토큰과 일치하지 않습니다.");
+        }
+
+        // 새 Access + Refresh 토큰 발급
         String email = jwtUtil.getEmail(refreshToken);
         Role role = jwtUtil.getRole(refreshToken);
 
-        String newAccessToken = jwtUtil.createAccessToken(id, role, email);
+        String newAccessToken = jwtUtil.createAccessToken(memberId, role, email);
+        String newRefreshToken = jwtUtil.createRefreshToken(memberId, role, email);
+
+        // Redis 갱신
+        refreshTokenService.saveToken(memberId, newRefreshToken);
+
+        // 쿠키 갱신
+        ResponseCookie refreshCookie = jwtUtil.createRefreshTokenCookie(newRefreshToken);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
-                .build();
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body("토큰 재발급 완료");
     }
+
 
     @GetMapping("/member/save")
     public String saveForm(Model model) {
@@ -91,26 +112,31 @@ public class MemberController {
     }
 
     @PostMapping("/member/login")
-    public String login(@ModelAttribute @Valid MemberLoginReq req,
-                        BindingResult bindingResult,
-                        HttpSession session,
-                        Model model) {
-        System.out.println("[Controller] login() 요청 들어옴");
+    @ResponseBody
+    public ResponseEntity<?> login(@RequestBody @Valid MemberLoginReq req, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("memberLoginReq", req);
-            return "login"; // 유효성 실패 시 로그인 폼으로
+            return ResponseEntity.badRequest().body("입력값 오류");
         }
 
         MemberLoginRes loginResult = memberService.login(req);
-        if (loginResult != null) {
-            session.setAttribute("loginEmail", loginResult.getMemberEmail());
-            model.addAttribute("memberLoginReq", req);
-            return "main";
-        } else {
-            model.addAttribute("loginError", "이메일 또는 비밀번호가 틀렸습니다.");
-            return "login";
+        if (loginResult == null) {
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("이메일 또는 비밀번호가 틀렸습니다.");
         }
+
+        String accessToken = jwtUtil.createAccessToken(
+                loginResult.getId().toString(), Role.ADMIN, loginResult.getMemberEmail()
+        );
+        String refreshToken = jwtUtil.createRefreshToken(
+                loginResult.getId().toString(), Role.ADMIN, loginResult.getMemberEmail()
+        );
+        ResponseCookie refreshCookie = jwtUtil.createRefreshTokenCookie(refreshToken);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body("로그인 성공");
     }
+
 
     @GetMapping("/member/")
     public String findAll(Model model) {
@@ -176,8 +202,18 @@ public class MemberController {
     }
 
     @PostMapping("/member/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
-        // 쿠키 삭제: refresh token을 무효화된 상태로 다시 쿠키에 덮어씀
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
+        // 1. 쿠키에서 리프레시 토큰 추출
+        String refreshToken = jwtUtil.extractRefreshToken(request);
+
+        // 2. 토큰 검증
+        if (refreshToken != null && jwtUtil.validateToken(refreshToken, "refresh")) {
+            // 3. 토큰에서 ID 추출 후 Redis에서 삭제
+            String memberId = jwtUtil.getId(refreshToken);
+            refreshTokenService.deleteRefreshToken(memberId);
+        }
+
+        // 4. 클라이언트 쿠키에서 제거
         ResponseCookie deleteCookie = jwtUtil.invalidateRefreshToken();
         response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
