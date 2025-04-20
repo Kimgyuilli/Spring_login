@@ -1,5 +1,6 @@
 package com.example.login.Common.jwt;
 
+import com.example.login.Refresh.service.BlacklistService;
 import com.example.login.User.domain.Role;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,6 +21,7 @@ import java.util.Collections;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JWTUtil jwtUtil;
+    private final BlacklistService blacklistService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -28,6 +30,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = jwtUtil.extractAccessToken(request);
         // 2. 토큰 존재하고 유효한 경우에만 인증 처리
         if (token != null && jwtUtil.validateToken(token, "access")) {
+
+            // 블랙리스트 확인
+            if (blacklistService.isBlacklisted(token)) {
+                log.warn("블랙리스트에 등록된 토큰입니다.");
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "블랙리스트 토큰");
+                return;
+            }
+
             // 3. 사용자 정보 추출
             String email = jwtUtil.getEmail(token);
             Role role = jwtUtil.getRole(token);

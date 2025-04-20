@@ -3,6 +3,8 @@ package com.example.login.Common.config;
 import com.example.login.Common.jwt.JWTUtil;
 import com.example.login.Common.jwt.JwtAuthenticationFilter;
 import com.example.login.Common.jwt.LoginFilter;
+import com.example.login.Refresh.service.BlacklistService;
+import com.example.login.Refresh.service.RefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,9 @@ public class SecurityConfig {
 
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
+    private final RefreshTokenService refreshTokenService;
+    private final BlacklistService blacklistService;
+
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -45,7 +50,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
 
-        LoginFilter loginFilter = new LoginFilter(authManager, objectMapper, jwtUtil);
+        LoginFilter loginFilter = new LoginFilter(authManager, objectMapper, jwtUtil, refreshTokenService);
         loginFilter.setFilterProcessesUrl("/member/login");
 
         http
@@ -68,7 +73,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/member", "/member/save", "/member/login", "/favicon.ico").permitAll()
+                        .requestMatchers("/", "/member", "/member/save", "/member/login", "/member/token/refresh", "/member/token/refresh/full", "/member/logout", "/member/email-check", "/favicon.ico").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated())
 
@@ -79,7 +84,7 @@ public class SecurityConfig {
 
 
         http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new JwtAuthenticationFilter(jwtUtil, blacklistService), UsernamePasswordAuthenticationFilter.class);
 
 
         return http.build();

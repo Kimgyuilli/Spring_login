@@ -2,6 +2,7 @@ package com.example.login.Common.jwt;
 
 import com.example.login.Common.exception.ErrorCode;
 import com.example.login.Common.response.LoginErrorResponse;
+import com.example.login.Refresh.service.RefreshTokenService;
 import com.example.login.User.dto.request.MemberLoginReq;
 import com.example.login.User.security.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +26,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final ObjectMapper objectMapper;
     private final JWTUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
 
 
     @Override
@@ -68,6 +70,9 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         // Refresh Token은 HttpOnly Cookie로
         response.addHeader("Set-Cookie", jwtUtil.createRefreshTokenCookie(refreshToken).toString());
+
+        refreshTokenService.saveToken(customUserDetails.getMember().getId().toString(), refreshToken);
+
     }
 
     @Override

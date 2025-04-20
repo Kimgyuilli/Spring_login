@@ -7,6 +7,7 @@ spring:
   config:
     import: optional:file:.env[.properties]
 
+
   datasource:
     url: jdbc:postgresql://db:5432/LoginProject
     driver-class-name: org.postgresql.Driver
