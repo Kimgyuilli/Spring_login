@@ -1,15 +1,21 @@
 package com.example.login.User.controller;
 
 import com.example.login.Common.exception.BaseException;
+import com.example.login.Common.jwt.JWTUtil;
+import com.example.login.User.domain.Role;
 import com.example.login.User.dto.request.MemberLoginReq;
 import com.example.login.User.dto.request.MemberSaveReq;
 import com.example.login.User.dto.request.MemberUpdateReq;
 import com.example.login.User.dto.response.MemberLoginRes;
 import com.example.login.User.dto.response.MemberRes;
 import com.example.login.User.service.MemberService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -24,6 +30,26 @@ import java.util.List;
 public class MemberController {
 
     private final MemberService memberService;
+    private final JWTUtil jwtUtil;
+
+    @PostMapping("/member/token/refresh")
+    public ResponseEntity<?> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = jwtUtil.extractRefreshToken(request);
+
+        if (refreshToken == null || !jwtUtil.validateToken(refreshToken, "refresh")) {
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("유효하지 않은 리프레시 토큰");
+        }
+
+        String id = jwtUtil.getId(refreshToken);
+        String email = jwtUtil.getEmail(refreshToken);
+        Role role = jwtUtil.getRole(refreshToken);
+
+        String newAccessToken = jwtUtil.createAccessToken(id, role, email);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
+                .build();
+    }
 
     @GetMapping("/member/save")
     public String saveForm(Model model) {
@@ -58,7 +84,7 @@ public class MemberController {
     }
 
 
-    @GetMapping("/member/login")
+    @GetMapping("/member/login-page")
     public String loginForm(Model model) {
         model.addAttribute("memberLoginReq", new MemberLoginReq());
         return "login";
@@ -147,6 +173,18 @@ public class MemberController {
     public String logout(HttpSession session) {
         session.invalidate();
         return "index";
+    }
+
+    @PostMapping("/member/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        // 쿠키 삭제: refresh token을 무효화된 상태로 다시 쿠키에 덮어씀
+        ResponseCookie deleteCookie = jwtUtil.invalidateRefreshToken();
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+
+        // (선택) Authorization 헤더 제거
+        response.setHeader(HttpHeaders.AUTHORIZATION, "");
+
+        return ResponseEntity.ok("로그아웃 완료");
     }
 
     @PostMapping("/member/email-check")

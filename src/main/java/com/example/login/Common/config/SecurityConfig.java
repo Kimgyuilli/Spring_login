@@ -68,7 +68,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/member", "/member/save", "/member/login", "/favicon.ico").permitAll()
+                        .requestMatchers("/", "/member", "/member/save", "/member/login", "/member/token/refresh", "/member/logout", "/member/email-check", "/favicon.ico").permitAll()
                         .requestMatchers("/admin").hasRole("ADMIN")
                         .anyRequest().authenticated())
 

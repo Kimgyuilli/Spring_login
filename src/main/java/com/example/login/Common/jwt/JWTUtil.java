@@ -48,7 +48,13 @@ public class JWTUtil {
 
     // Refresh Token 무효화
     public ResponseCookie invalidateRefreshToken() {
-        return createRefreshCookie("", 0L);
+        return ResponseCookie.from("refresh", "")
+                .path("/")
+                .httpOnly(true)
+                .secure(false)
+                .sameSite("Lax")
+                .maxAge(0)
+                .build();
     }
 
     // Refresh Token을 쿠키로 발급
