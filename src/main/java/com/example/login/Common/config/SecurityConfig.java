@@ -3,6 +3,7 @@ package com.example.login.Common.config;
 import com.example.login.Common.jwt.JWTUtil;
 import com.example.login.Common.jwt.JwtAuthenticationFilter;
 import com.example.login.Common.jwt.LoginFilter;
+import com.example.login.Refresh.service.BlacklistService;
 import com.example.login.Refresh.service.RefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -32,6 +33,7 @@ public class SecurityConfig {
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
     private final RefreshTokenService refreshTokenService;
+    private final BlacklistService blacklistService;
 
 
     @Bean
@@ -82,7 +84,7 @@ public class SecurityConfig {
 
 
         http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new JwtAuthenticationFilter(jwtUtil, blacklistService), UsernamePasswordAuthenticationFilter.class);
 
 
         return http.build();

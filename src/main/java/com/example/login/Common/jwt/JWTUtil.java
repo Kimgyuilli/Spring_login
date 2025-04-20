@@ -140,4 +140,9 @@ public class JWTUtil {
         }
         return null;
     }
+
+    public long getExpiration(String token) {
+        Date expiration = parseClaims(token).getExpiration();
+        return expiration.getTime() - System.currentTimeMillis();
+    }
 }

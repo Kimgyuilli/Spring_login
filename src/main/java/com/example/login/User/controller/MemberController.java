@@ -4,6 +4,7 @@ import com.example.login.Common.exception.BaseException;
 import com.example.login.Common.jwt.JWTUtil;
 import com.example.login.Refresh.Entity.RefreshToken;
 import com.example.login.Refresh.repository.RefreshTokenRepository;
+import com.example.login.Refresh.service.BlacklistService;
 import com.example.login.Refresh.service.RefreshTokenService;
 import com.example.login.User.domain.Role;
 import com.example.login.User.dto.request.MemberLoginReq;
@@ -34,6 +35,7 @@ public class MemberController {
 
     private final RefreshTokenRepository refreshTokenRepository;
     private final RefreshTokenService refreshTokenService;
+    private final BlacklistService blacklistService;
     private final MemberService memberService;
     private final JWTUtil jwtUtil;
 
@@ -216,6 +218,13 @@ public class MemberController {
         // 4. 클라이언트 쿠키에서 제거
         ResponseCookie deleteCookie = jwtUtil.invalidateRefreshToken();
         response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+
+        // access token 블랙리스트 등록
+        String accessToken = jwtUtil.extractAccessToken(request);
+        if (accessToken != null && jwtUtil.validateToken(accessToken, "access")) {
+            long expiration = jwtUtil.getExpiration(accessToken); // 남은 만료 시간(ms)
+            blacklistService.addToBlacklist(accessToken, expiration);
+        }
 
         // (선택) Authorization 헤더 제거
         response.setHeader(HttpHeaders.AUTHORIZATION, "");
