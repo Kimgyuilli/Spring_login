@@ -4,6 +4,7 @@ package com.example.login.User.service;
 import com.example.login.Common.exception.BaseException;
 import com.example.login.Common.exception.ErrorCode;
 import com.example.login.User.domain.MemberEntity;
+import com.example.login.User.domain.Role;
 import com.example.login.User.dto.request.MemberLoginReq;
 import com.example.login.User.dto.request.MemberSaveReq;
 import com.example.login.User.dto.request.MemberUpdateReq;
@@ -11,6 +12,7 @@ import com.example.login.User.dto.response.MemberLoginRes;
 import com.example.login.User.dto.response.MemberRes;
 import com.example.login.User.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public void save(MemberSaveReq req) {
         // 중복 이메일 체크
@@ -29,9 +32,23 @@ public class MemberService {
             throw new BaseException(ErrorCode.DUPLICATE_EMAIL);
         }
 
-        MemberEntity memberEntity = MemberEntity.toMemberEntity(req.getMemberEmail(), req.getMemberName(), req.getMemberPassword());
-        memberRepository.save(memberEntity);
+        // 비밀번호 암호화
+        String encodedPassword = passwordEncoder.encode(req.getMemberPassword());
 
+        System.out.println("[회원가입] 이메일: " + req.getMemberEmail());
+        System.out.println("[회원가입] 인코딩된 비밀번호: " + encodedPassword);
+        System.out.println("[회원가입] 이름: " + req.getMemberName());
+        System.out.println("[회원가입] 역할: " + Role.ADMIN);
+
+
+        MemberEntity memberEntity = MemberEntity.toMemberEntity(
+                req.getMemberEmail(),
+                req.getMemberName(),
+                encodedPassword, // 암호화된 비밀번호로 저장
+                Role.ADMIN // 개발 중이니까 일단 ADMIN
+        );
+
+        memberRepository.save(memberEntity);
     }
 
     public MemberLoginRes login(MemberLoginReq request) {
@@ -39,7 +56,7 @@ public class MemberService {
 
         if (memberOpt.isPresent()) {
             MemberEntity entity = memberOpt.get();
-            if (entity.getMemberPassword().equals(request.getMemberPassword())) {
+            if (passwordEncoder.matches(request.getMemberPassword(), entity.getMemberPassword())) {
                 return new MemberLoginRes(
                         entity.getId(),
                         entity.getMemberEmail(),
@@ -71,7 +88,7 @@ public class MemberService {
     }
 
     public void update(MemberUpdateReq req) {
-        memberRepository.save(MemberEntity.toUpdateMemberEntity(req.getId(), req.getMemberEmail(), req.getMemberName(), req.getMemberPassword()));
+        memberRepository.save(MemberEntity.toUpdateMemberEntity(req.getId(), req.getMemberEmail(), req.getMemberName(), req.getMemberPassword(), Role.ADMIN));
     }
 
     public void deleteById(Long id) {

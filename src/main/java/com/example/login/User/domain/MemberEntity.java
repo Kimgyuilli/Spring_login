@@ -25,20 +25,27 @@ public class MemberEntity extends BaseTimeEntity {
     @Column
     private String memberPassword;
 
-    public static MemberEntity toMemberEntity(String email, String name, String password) {
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+
+    public static MemberEntity toMemberEntity(String email, String name, String password, Role role) {
         return MemberEntity.builder()
                 .memberEmail(email)
                 .memberName(name)
                 .memberPassword(password)
+                .role(role)
                 .build();
     }
 
-    public static MemberEntity toUpdateMemberEntity(Long id, String email, String name, String password) {
+    public static MemberEntity toUpdateMemberEntity(Long id, String email, String name, String password, Role role) {
         return MemberEntity.builder()
                 .id(id)
                 .memberEmail(email)
                 .memberName(name)
                 .memberPassword(password)
+                .role(role)
                 .build();
     }
 }
