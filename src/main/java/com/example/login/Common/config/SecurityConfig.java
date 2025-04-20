@@ -28,7 +28,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // 🔐 JWT 필터 - 추후 구현
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
 
