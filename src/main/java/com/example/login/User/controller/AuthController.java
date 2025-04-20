@@ -66,7 +66,7 @@ public class AuthController {
 
     // Access Token 재발급
     @PostMapping("/token/refresh")
-    public ResponseEntity<?> refreshAccessToken(HttpServletRequest request) {
+    public ResponseEntity<?> reissueAccessToken(HttpServletRequest request) {
         String refreshToken = jwtUtil.extractRefreshToken(request);
 
         if (refreshToken == null || !jwtUtil.validateToken(refreshToken, "refresh")) {
@@ -91,7 +91,7 @@ public class AuthController {
 
     // Refresh Token을 포함한 Access Token 재발급
     @PostMapping("/token/refresh/full")
-    public ResponseEntity<?> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<?> reissueAccessAndRefreshToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = jwtUtil.extractRefreshToken(request);
 
         if (refreshToken == null || !jwtUtil.validateToken(refreshToken, "refresh")) {
