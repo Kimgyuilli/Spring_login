@@ -2,6 +2,7 @@ package com.example.login.Common.jwt;
 
 import com.example.login.Refresh.service.BlacklistService;
 import com.example.login.User.domain.Role;
+import com.example.login.User.security.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -24,9 +26,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
     private final BlacklistService blacklistService;
+    private final CustomUserDetailsService userDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
         jwtUtil.extractAccessToken(request)
                 .filter(token -> jwtUtil.validateToken(token, "access"))
@@ -42,32 +46,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     }
                     return true;
                 })
-                .ifPresent(token -> {
-                    Optional<String> optionalEmail = jwtUtil.getEmail(token);
-                    Optional<Role> optionalRole = jwtUtil.getRole(token);
-
-                    if (optionalEmail.isEmpty() || optionalRole.isEmpty()) {
-                        log.warn("토큰에서 사용자 정보 추출 실패");
+                .flatMap(jwtUtil::getEmail)
+                .ifPresent(email -> {
+                    try {
+                        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        log.info("SecurityContext에 인증 객체 저장 완료: {}", email);
+                    } catch (Exception e) {
+                        log.warn("UserDetails 로딩 실패: {}", e.getMessage());
                         try {
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰 정보");
-                        } catch (IOException e) {
-                            log.error("에러 응답 중 오류 발생", e);
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "회원 인증 실패");
+                        } catch (IOException ioException) {
+                            log.error("에러 응답 중 오류 발생", ioException);
                         }
-                        return;
                     }
-
-                    String email = optionalEmail.get();
-                    Role role = optionalRole.get();
-                    log.info("[JwtAuthenticationFilter] 유효한 토큰 - 이메일: {}, 역할: {}", email, role);
-
-                    Authentication authentication = new UsernamePasswordAuthenticationToken(
-                            email,
-                            null,
-                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.name()))
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
                 });
 
         filterChain.doFilter(request, response);
     }
 }
+
