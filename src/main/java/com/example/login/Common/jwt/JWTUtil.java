@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -86,25 +87,40 @@ public class JWTUtil {
     }
 
     // 토큰 파싱: ID
-    public String getId(String token) {
-        return parseClaims(token).get("id", String.class);
+    public Optional<String> getId(String token) {
+        try {
+            return Optional.ofNullable(parseClaims(token).get("id", String.class));
+        } catch (Exception e) {
+            log.warn("ID 추출 실패: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     // 토큰 파싱: 이메일
-    public String getEmail(String token) {
-        return parseClaims(token).get("email", String.class);
+    public Optional<String> getEmail(String token) {
+        try {
+            return Optional.ofNullable(parseClaims(token).get("email", String.class));
+        } catch (Exception e) {
+            log.warn("Email 추출 실패: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     // 토큰 파싱: 권한
-    public Role getRole(String token) {
-        return Role.valueOf(parseClaims(token).get("role", String.class));
+    public Optional<Role> getRole(String token) {
+        try {
+            return Optional.of(Role.valueOf(parseClaims(token).get("role", String.class)));
+        } catch (Exception e) {
+            log.warn("Role 추출 실패: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     // 토큰 파싱: 타입 구분(access/refresh)
-    public String getTokenType(String token) {
-        return parseClaims(token).get("type", String.class);
+    public Optional<String> getTokenType(String token) {
+        return Optional.ofNullable(parseClaims(token))
+                .map(claims -> claims.get("type", String.class));
     }
-
     // 토큰 검증 (만료 포함)
     public boolean validateToken(String token, String expectedType) {
         try {
@@ -122,27 +138,25 @@ public class JWTUtil {
     }
 
     // 헤더에서 AccessToken 추출
-    public String extractAccessToken(HttpServletRequest request) {
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(7);
-        }
-        return null;
+    public Optional<String> extractAccessToken(HttpServletRequest request) {
+        return Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
+                .filter(header -> header.startsWith("Bearer "))
+                .map(header -> header.substring(7));
     }
 
     // 쿠키에서 RefreshToken 추출
-    public String extractRefreshToken(HttpServletRequest request) {
-        if (request.getCookies() == null) return null;
+    public Optional<String> extractRefreshToken(HttpServletRequest request) {
+        if (request.getCookies() == null) return Optional.empty();
         for (Cookie cookie : request.getCookies()) {
             if ("refresh".equals(cookie.getName())) {
-                return cookie.getValue();
+                return Optional.ofNullable(cookie.getValue());
             }
         }
-        return null;
+        return Optional.empty();
     }
-
-    public long getExpiration(String token) {
-        Date expiration = parseClaims(token).getExpiration();
-        return expiration.getTime() - System.currentTimeMillis();
+    public Optional<Long> getExpiration(String token) {
+        return Optional.ofNullable(parseClaims(token))
+                .map(Claims::getExpiration)
+                .map(exp -> exp.getTime() - System.currentTimeMillis());
     }
 }

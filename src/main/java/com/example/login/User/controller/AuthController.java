@@ -21,6 +21,8 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/member")
 @RequiredArgsConstructor
@@ -67,85 +69,98 @@ public class AuthController {
     // Access Token 재발급
     @PostMapping("/token/refresh")
     public ResponseEntity<?> reissueAccessToken(HttpServletRequest request) {
-        String refreshToken = jwtUtil.extractRefreshToken(request);
 
-        if (refreshToken == null || !jwtUtil.validateToken(refreshToken, "refresh")) {
-            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("유효하지 않은 리프레시 토큰");
-        }
+        return jwtUtil.extractRefreshToken(request)
+                .filter(token -> jwtUtil.validateToken(token, "refresh"))
+                .flatMap(validRefreshToken -> jwtUtil.getId(validRefreshToken)
+                        .flatMap(memberId -> {
+                            RefreshToken stored = refreshTokenRepository.findById(memberId).orElse(null);
+                            if (stored == null || !stored.getToken().equals(validRefreshToken)) {
+                                return Optional.empty();
+                            }
 
-        String memberId = jwtUtil.getId(refreshToken);
-        RefreshToken stored = refreshTokenRepository.findById(memberId).orElse(null);
+                            Optional<String> emailOpt = jwtUtil.getEmail(validRefreshToken);
+                            Optional<Role> roleOpt = jwtUtil.getRole(validRefreshToken);
 
-        if (stored == null || !stored.getToken().equals(refreshToken)) {
-            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("저장된 리프레시 토큰과 일치하지 않습니다.");
-        }
+                            if (emailOpt.isEmpty() || roleOpt.isEmpty()) {
+                                return Optional.empty();
+                            }
 
-        String email = jwtUtil.getEmail(refreshToken);
-        Role role = jwtUtil.getRole(refreshToken);
-        String newAccessToken = jwtUtil.createAccessToken(memberId, role, email);
+                            String email = emailOpt.get();
+                            Role role = roleOpt.get();
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
-                .body("Access 토큰 재발급 완료");
+                            String newAccessToken = jwtUtil.createAccessToken(memberId, role, email);
+
+                            return Optional.of(ResponseEntity.ok()
+                                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
+                                    .body("Access 토큰 재발급 완료"));
+                        }))
+                .orElseGet(() -> ResponseEntity
+                        .status(HttpServletResponse.SC_UNAUTHORIZED)
+                        .body("리프레시 토큰 검증 실패 또는 정보 추출 실패"));
     }
 
     // Refresh Token을 포함한 Access Token 재발급
     @PostMapping("/token/refresh/full")
     public ResponseEntity<?> reissueAccessAndRefreshToken(HttpServletRequest request, HttpServletResponse response) {
-        String refreshToken = jwtUtil.extractRefreshToken(request);
 
-        if (refreshToken == null || !jwtUtil.validateToken(refreshToken, "refresh")) {
-            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("유효하지 않은 리프레시 토큰");
-        }
+        return jwtUtil.extractRefreshToken(request)
+                .filter(token -> jwtUtil.validateToken(token, "refresh"))
+                .flatMap(validRefreshToken -> jwtUtil.getId(validRefreshToken)
+                        .flatMap(memberId -> {
+                            RefreshToken stored = refreshTokenRepository.findById(memberId).orElse(null);
+                            if (stored == null || !stored.getToken().equals(validRefreshToken)) {
+                                return Optional.empty();
+                            }
 
-        String memberId = jwtUtil.getId(refreshToken);
-        RefreshToken stored = refreshTokenRepository.findById(memberId).orElse(null);
+                            Optional<String> emailOpt = jwtUtil.getEmail(validRefreshToken);
+                            Optional<Role> roleOpt = jwtUtil.getRole(validRefreshToken);
 
-        if (stored == null || !stored.getToken().equals(refreshToken)) {
-            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("저장된 리프레시 토큰과 일치하지 않습니다.");
-        }
+                            if (emailOpt.isEmpty() || roleOpt.isEmpty()) {
+                                return Optional.empty();
+                            }
 
-        // 새 Access + Refresh 토큰 발급
-        String email = jwtUtil.getEmail(refreshToken);
-        Role role = jwtUtil.getRole(refreshToken);
+                            String email = emailOpt.get();
+                            Role role = roleOpt.get();
 
-        String newAccessToken = jwtUtil.createAccessToken(memberId, role, email);
-        String newRefreshToken = jwtUtil.createRefreshToken(memberId, role, email);
+                            String newAccessToken = jwtUtil.createAccessToken(memberId, role, email);
+                            String newRefreshToken = jwtUtil.createRefreshToken(memberId, role, email);
 
-        // Redis 갱신
-        refreshTokenService.saveToken(memberId, newRefreshToken);
+                            // Redis 갱신
+                            refreshTokenService.saveToken(memberId, newRefreshToken);
 
-        // 쿠키 갱신
-        ResponseCookie refreshCookie = jwtUtil.createRefreshTokenCookie(newRefreshToken);
+                            // 쿠키 갱신
+                            ResponseCookie refreshCookie = jwtUtil.createRefreshTokenCookie(newRefreshToken);
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
-                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                .body("토큰 재발급 완료");
+                            return Optional.of(ResponseEntity.ok()
+                                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + newAccessToken)
+                                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                                    .body("토큰 재발급 완료"));
+                        }))
+                .orElseGet(() -> ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED)
+                        .body("유효하지 않거나 일치하지 않는 리프레시 토큰입니다."));
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
-        // 1. 쿠키에서 리프레시 토큰 추출
-        String refreshToken = jwtUtil.extractRefreshToken(request);
+        // 쿠키에서 리프레시 토큰 추출
+        jwtUtil.extractRefreshToken(request)
+                .filter(token -> jwtUtil.validateToken(token, "refresh"))
+                .flatMap(jwtUtil::getId)
+                .ifPresent(refreshTokenService::deleteRefreshToken);
 
-        // 2. 토큰 검증
-        if (refreshToken != null && jwtUtil.validateToken(refreshToken, "refresh")) {
-            // 3. 토큰에서 ID 추출 후 Redis에서 삭제
-            String memberId = jwtUtil.getId(refreshToken);
-            refreshTokenService.deleteRefreshToken(memberId);
-        }
-
-        // 4. 클라이언트 쿠키에서 제거
+        // 클라이언트 쿠키에서 제거
         ResponseCookie deleteCookie = jwtUtil.invalidateRefreshToken();
         response.addHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
         // access token 블랙리스트 등록
-        String accessToken = jwtUtil.extractAccessToken(request);
-        if (accessToken != null && jwtUtil.validateToken(accessToken, "access")) {
-            long expiration = jwtUtil.getExpiration(accessToken); // 남은 만료 시간(ms)
-            blacklistService.addToBlacklist(accessToken, expiration);
-        }
+        jwtUtil.extractAccessToken(request)
+                .filter(token -> jwtUtil.validateToken(token, "access"))
+                .flatMap(jwtUtil::getExpiration)
+                .ifPresent(expiration -> {
+                    String token = jwtUtil.extractAccessToken(request).get();
+                    blacklistService.addToBlacklist(token, expiration);
+                });
 
         // (선택) Authorization 헤더 제거
         response.setHeader(HttpHeaders.AUTHORIZATION, "");
