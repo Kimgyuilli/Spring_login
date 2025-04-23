@@ -1,5 +1,6 @@
 package com.example.login.Common.config;
 
+import com.example.login.Common.jwt.JWTService;
 import com.example.login.Common.jwt.JWTUtil;
 import com.example.login.Common.jwt.JwtAuthenticationFilter;
 import com.example.login.Common.jwt.LoginFilter;
@@ -36,6 +37,7 @@ public class SecurityConfig {
     private final RefreshTokenService refreshTokenService;
     private final BlacklistService blacklistService;
     private final CustomUserDetailsService customUserDetailsService;
+    private final JWTService jwtService;
 
 
     @Bean
@@ -52,7 +54,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
 
-        LoginFilter loginFilter = new LoginFilter(authManager, objectMapper, jwtUtil, refreshTokenService);
+        LoginFilter loginFilter = new LoginFilter(authManager, objectMapper, jwtService);
+
         loginFilter.setFilterProcessesUrl("/member/login");
 
         http
