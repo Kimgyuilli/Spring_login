@@ -9,6 +9,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.io.IOException;
 
+@Slf4j
 @RequiredArgsConstructor
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
@@ -48,7 +50,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         jwtService.issueTokens(response, customUserDetails.getMember());
 
-        System.out.println("로그인 성공 - 토큰 발급 완료: {}" + customUserDetails.getUsername());
+        log.info("로그인 성공 - 사용자: {}", customUserDetails.getUsername());
 
     }
 

@@ -34,7 +34,7 @@ public class MemberService {
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(req.getMemberPassword());
 
-        log.info("[회원가입] 이메일: {}, 이름: {}, 인코딩 비밀번호: {}", req.getMemberEmail(), req.getMemberName(), encodedPassword);
+        log.info("[회원가입] 이메일: {}, 이름: {}", req.getMemberEmail(), req.getMemberName());
 
 
         MemberEntity memberEntity = MemberEntity.toMemberEntity(
