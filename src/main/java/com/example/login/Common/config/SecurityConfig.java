@@ -35,7 +35,7 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_URLS = {
             "/api/join", "/api/join/email-check", "/api/auth/login",
-            "/api/auth/token/refresh", "/api/auth/token/refresh/full", "/api/auth/logout"
+            "/api/auth/token/refresh", "/api/auth/token/refresh/full", "/api/auth/logout", "/api-docs-ui", "/v3/api-docs/**", "/swagger-ui/**",
     };
 
     private static final String[] ADMIN_URLS = {

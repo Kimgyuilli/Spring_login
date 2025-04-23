@@ -94,5 +94,4 @@ RedisConfig: Redis 연결 설정
 application.yml: profile별 환경, JWT 만료시간, Redis 접속 설정 등 포함
 
 ## 추가 작업
-- [ ] ssr방식 웹 페이지 리펙토링
 - [ ] 소셜로그인 구현
