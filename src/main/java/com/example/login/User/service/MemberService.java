@@ -2,13 +2,11 @@ package com.example.login.User.service;
 
 
 import com.example.login.Common.exception.BaseException;
-import com.example.login.Common.exception.ErrorCode;
+import com.example.login.Common.response.ErrorType.ErrorCode;
 import com.example.login.User.domain.MemberEntity;
 import com.example.login.User.domain.Role;
-import com.example.login.User.dto.request.MemberLoginReq;
 import com.example.login.User.dto.request.MemberSaveReq;
 import com.example.login.User.dto.request.MemberUpdateReq;
-import com.example.login.User.dto.response.MemberLoginRes;
 import com.example.login.User.dto.response.MemberRes;
 import com.example.login.User.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,22 +49,6 @@ public class MemberService {
         memberRepository.save(memberEntity);
     }
 
-    public MemberLoginRes login(MemberLoginReq request) {
-        Optional<MemberEntity> memberOpt = memberRepository.findByMemberEmail(request.getMemberEmail());
-
-        if (memberOpt.isPresent()) {
-            MemberEntity entity = memberOpt.get();
-            if (passwordEncoder.matches(request.getMemberPassword(), entity.getMemberPassword())) {
-                return new MemberLoginRes(
-                        entity.getId(),
-                        entity.getMemberEmail(),
-                        entity.getMemberName()
-                );
-            }
-        }
-
-        return null; // or throw exception
-    }
 
     public List<MemberRes> findAll() {
         List<MemberEntity> memberEntityList = memberRepository.findAll();
@@ -88,7 +70,11 @@ public class MemberService {
     }
 
     public void update(MemberUpdateReq req) {
-        memberRepository.save(MemberEntity.toUpdateMemberEntity(req.getId(), req.getMemberEmail(), req.getMemberName(), req.getMemberPassword(), Role.ADMIN));
+        String encodedPassword = passwordEncoder.encode(req.getMemberPassword());
+        MemberEntity updated = MemberEntity.toUpdateMemberEntity(
+                req.getId(), req.getMemberEmail(), req.getMemberName(), encodedPassword, Role.ADMIN
+        );
+        memberRepository.save(updated);
     }
 
     public void deleteById(Long id) {

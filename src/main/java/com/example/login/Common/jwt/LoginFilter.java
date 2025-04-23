@@ -1,8 +1,7 @@
 package com.example.login.Common.jwt;
 
-import com.example.login.Common.exception.ErrorCode;
-import com.example.login.Common.response.LoginErrorResponse;
-import com.example.login.Refresh.service.RefreshTokenService;
+import com.example.login.Common.dto.ApiRes;
+import com.example.login.Common.response.ErrorType.ErrorCode;
 import com.example.login.User.dto.request.MemberLoginReq;
 import com.example.login.User.security.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,7 +9,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -56,11 +54,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException {
-        response.setStatus(ErrorCode.LOGIN_FAIL.getStatus().value());
+        response.setStatus(ErrorCode.LOGIN_FAIL.getStatus());
         response.setContentType("application/json; charset=UTF-8");
 
-        LoginErrorResponse errorResponse = new LoginErrorResponse(ErrorCode.LOGIN_FAIL);
-        String json = objectMapper.writeValueAsString(errorResponse);
+        String json = objectMapper.writeValueAsString(ApiRes.fail(ErrorCode.LOGIN_FAIL));
         response.getWriter().write(json);
     }
 }
