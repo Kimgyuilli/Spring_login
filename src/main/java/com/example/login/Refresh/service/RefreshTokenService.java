@@ -3,10 +3,8 @@ package com.example.login.Refresh.service;
 import com.example.login.Refresh.Entity.RefreshToken;
 import com.example.login.Refresh.repository.RefreshTokenRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.Optional;
 
 @Service
