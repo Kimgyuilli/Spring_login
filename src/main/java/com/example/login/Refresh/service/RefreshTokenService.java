@@ -21,10 +21,12 @@ public class RefreshTokenService {
         return refreshTokenRepository.findById(memberId);
     }
 
+    public boolean existsByMemberId(String memberId) {
+        return refreshTokenRepository.existsById(memberId);
+    }
+
     public void deleteRefreshToken(String memberId) {
         refreshTokenRepository.deleteById(memberId);
     }
-
-
 }
 
