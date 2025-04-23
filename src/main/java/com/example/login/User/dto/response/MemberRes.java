@@ -4,7 +4,6 @@ import com.example.login.User.domain.MemberEntity;
 import lombok.*;
 
 @Getter
-@Setter
 @ToString
 @Builder
 @NoArgsConstructor

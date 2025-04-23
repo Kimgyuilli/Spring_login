@@ -1,10 +1,12 @@
 package com.example.login.Common.config;
 
+import com.example.login.Common.jwt.JWTService;
 import com.example.login.Common.jwt.JWTUtil;
 import com.example.login.Common.jwt.JwtAuthenticationFilter;
 import com.example.login.Common.jwt.LoginFilter;
 import com.example.login.Refresh.service.BlacklistService;
 import com.example.login.Refresh.service.RefreshTokenService;
+import com.example.login.User.security.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -22,19 +24,30 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
-import java.util.Collections;
 import java.util.List;
+
+
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private static final String[] PUBLIC_URLS = {
+            "/api/join", "/api/join/email-check", "/api/auth/login",
+            "/api/auth/token/refresh", "/api/auth/token/refresh/full", "/api/auth/logout"
+    };
+
+    private static final String[] ADMIN_URLS = {
+            "/api/admin/**"
+    };
+
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
     private final RefreshTokenService refreshTokenService;
     private final BlacklistService blacklistService;
-
+    private final CustomUserDetailsService customUserDetailsService;
+    private final JWTService jwtService;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -46,12 +59,11 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
 
-        LoginFilter loginFilter = new LoginFilter(authManager, objectMapper, jwtUtil, refreshTokenService);
-        loginFilter.setFilterProcessesUrl("/member/login");
+        LoginFilter loginFilter = new LoginFilter(authManager, objectMapper, jwtService);
+        loginFilter.setFilterProcessesUrl("/api/auth/login");
 
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -61,10 +73,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowedOriginPatterns(List.of("*"));
-                    config.setAllowedMethods(Collections.singletonList("*"));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     config.setAllowCredentials(true);
-                    config.setAllowedHeaders(Collections.singletonList("*"));
-                    config.setExposedHeaders(Collections.singletonList("Authorization"));
+                    config.setAllowedHeaders(List.of("*"));
+                    config.setExposedHeaders(List.of("Authorization"));
                     config.setMaxAge(3600L);
                     return config;
                 }))
@@ -73,20 +85,21 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/member", "/member/save", "/member/login", "/member/token/refresh", "/member/token/refresh/full", "/member/logout", "/member/email-check", "/favicon.ico").permitAll()
-                        .requestMatchers("/admin").hasRole("ADMIN")
+                        .requestMatchers(PUBLIC_URLS).permitAll()
+                        .requestMatchers(ADMIN_URLS).hasRole("ADMIN")
                         .anyRequest().authenticated())
 
                 .exceptionHandling(except -> except
                         .authenticationEntryPoint((request, response, authException) ->
-                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
-                        ));
-
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")));
 
         http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(new JwtAuthenticationFilter(jwtUtil, blacklistService), UsernamePasswordAuthenticationFilter.class);
-
+        http.addFilterBefore(
+                new JwtAuthenticationFilter(jwtUtil, blacklistService, customUserDetailsService),
+                UsernamePasswordAuthenticationFilter.class
+        );
 
         return http.build();
     }
 }
+

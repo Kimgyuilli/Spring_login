@@ -4,16 +4,22 @@ import lombok.*;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.annotation.Id;
 
-@RedisHash(value = "refreshToken", timeToLive = 1209600) // 14일 TTL
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@RedisHash(value = "refreshToken", timeToLive = 1209600)
 public class RefreshToken {
 
     @Id
     private String memberId;
 
     private String token;
+
+    public RefreshToken update(String newToken) {
+        return RefreshToken.builder()
+                .memberId(this.memberId)
+                .token(newToken)
+                .build();
+    }
 }

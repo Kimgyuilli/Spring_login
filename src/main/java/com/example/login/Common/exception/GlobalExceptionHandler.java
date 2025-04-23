@@ -1,5 +1,8 @@
 package com.example.login.Common.exception;
 
+import com.example.login.Common.dto.ApiRes;
+import com.example.login.Common.response.ErrorType.ErrorCode;
+import com.example.login.Common.response.ErrorType.ErrorType;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -12,32 +15,48 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 1. 커스텀 예외 처리
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<?> handleBaseException(BaseException e) {
         return ResponseEntity
                 .status(e.getErrorCode().getStatus())
-                .body(e.getErrorCode().getMessage()); // 혹은 공통 응답 형식 사용
+                .body(ApiRes.fail(e.getErrorCode()));
     }
 
+    // 2. Enum 변환 에러 (Role 등)
     @ExceptionHandler(InvalidFormatException.class)
     public ResponseEntity<?> handleInvalidFormat(InvalidFormatException e) {
-        // Role 변환 실패만 잡고 싶은 경우
         if (e.getTargetType().isEnum() && e.getTargetType().getSimpleName().equals("Role")) {
             return ResponseEntity
                     .status(ErrorCode.INVALID_ROLE.getStatus())
-                    .body(ErrorCode.INVALID_ROLE.getMessage());
+                    .body(ApiRes.fail(ErrorCode.INVALID_ROLE));
         }
 
-        // 그 외는 400으로 일반 처리
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body("입력값이 잘못되었습니다.");
+                .body(ApiRes.fail(new ErrorType() {
+                    @Override
+                    public String getCode() {
+                        return "E400";
+                    }
+
+                    @Override
+                    public String getMessage() {
+                        return "입력값이 잘못되었습니다.";
+                    }
+
+                    @Override
+                    public int getStatus() {
+                        return HttpStatus.BAD_REQUEST.value();
+                    }
+                }));
     }
 
+    // 3. 회원 없음 예외
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<?> handleUsernameNotFound(UsernameNotFoundException e) {
         return ResponseEntity
                 .status(ErrorCode.MEMBER_NOT_FOUND.getStatus())
-                .body(ErrorCode.MEMBER_NOT_FOUND.getMessage());
+                .body(ApiRes.fail(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

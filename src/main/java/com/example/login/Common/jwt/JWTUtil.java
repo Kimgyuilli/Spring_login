@@ -15,10 +15,19 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 
 @Slf4j
 @Component
 public class JWTUtil {
+
+    public static final String CLAIM_ID = "id";
+    public static final String CLAIM_EMAIL = "email";
+    public static final String CLAIM_ROLE = "role";
+    public static final String CLAIM_TYPE = "type";
+    public static final String TOKEN_TYPE_ACCESS = "access";
+    public static final String TOKEN_TYPE_REFRESH = "refresh";
+    public static final String COOKIE_NAME_REFRESH = "refresh";
 
     @Value("${jwt.secret}")
     private String secret;
@@ -29,6 +38,9 @@ public class JWTUtil {
     @Value("${jwt.refresh-token-expiration}")
     private long refreshTokenExpiration;
 
+    @Value("${cookie.secure}")
+    private boolean secure;
+
     private SecretKey secretKey;
 
     @PostConstruct
@@ -38,111 +50,125 @@ public class JWTUtil {
 
     // Access Token 생성
     public String createAccessToken(String id, Role role, String email) {
-        return createJWT(id, role, email, "access", accessTokenExpiration);
+        return createJWT(id, role, email, TOKEN_TYPE_ACCESS, accessTokenExpiration);
     }
 
     // Refresh Token 생성
     public String createRefreshToken(String id, Role role, String email) {
-        return createJWT(id, role, email, "refresh", refreshTokenExpiration);
+        return createJWT(id, role, email, TOKEN_TYPE_REFRESH, refreshTokenExpiration);
     }
 
     // Refresh Token 무효화
     public ResponseCookie invalidateRefreshToken() {
-        return ResponseCookie.from("refresh", "")
-                .path("/")
-                .httpOnly(true)
-                .secure(false)
-                .sameSite("Lax")
-                .maxAge(0)
-                .build();
+        return buildRefreshCookie("", 0);
     }
 
     // Refresh Token을 쿠키로 발급
     public ResponseCookie createRefreshTokenCookie(String refreshToken) {
-        return createRefreshCookie(refreshToken, refreshTokenExpiration);
-    }
-
-    private ResponseCookie createRefreshCookie(String value, Long maxAge) {
-        return ResponseCookie.from("refresh", value)
-                .maxAge(maxAge)
-                .path("/")
-                .httpOnly(true)
-                .secure(false) // 운영환경에서는 true, SameSite=Strict 또는 None
-                .sameSite("Lax")
-                .build();
+        return buildRefreshCookie(refreshToken, refreshTokenExpiration);
     }
 
     // JWT 생성 내부 메서드
     private String createJWT(String id, Role role, String email, String type, long expireMs) {
         return Jwts.builder()
-                .claim("type", type)
-                .claim("id", id)
-                .claim("role", role.name())
-                .claim("email", email)
+                .claim(CLAIM_TYPE, type)
+                .claim(CLAIM_ID, id)
+                .claim(CLAIM_ROLE, role.name())
+                .claim(CLAIM_EMAIL, email)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expireMs))
                 .signWith(secretKey)
                 .compact();
     }
 
+    private Optional<Claims> safelyParseClaims(String token) {
+        try {
+            return Optional.of(Jwts.parser()
+                    .verifyWith(secretKey)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload());
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("JWT 파싱 실패: {}", e.getMessage());
+            return Optional.empty();
+        }
+    }
+
     // 토큰 파싱: ID
-    public String getId(String token) {
-        return parseClaims(token).get("id", String.class);
+    public Optional<String> getId(String token) {
+        return safelyParseClaims(token)
+                .map(claims -> claims.get(CLAIM_ID, String.class));
     }
 
     // 토큰 파싱: 이메일
-    public String getEmail(String token) {
-        return parseClaims(token).get("email", String.class);
+    public Optional<String> getEmail(String token) {
+        return safelyParseClaims(token)
+                .map(claims -> claims.get(CLAIM_EMAIL, String.class));
     }
 
     // 토큰 파싱: 권한
-    public Role getRole(String token) {
-        return Role.valueOf(parseClaims(token).get("role", String.class));
+    public Optional<Role> getRole(String token) {
+        return safelyParseClaims(token)
+                .map(claims -> claims.get(CLAIM_ROLE, String.class))
+                .map(Role::valueOf);
     }
 
     // 토큰 파싱: 타입 구분(access/refresh)
-    public String getTokenType(String token) {
-        return parseClaims(token).get("type", String.class);
+    public Optional<String> getTokenType(String token) {
+        return safelyParseClaims(token)
+                .map(claims -> claims.get(CLAIM_TYPE, String.class));
+    }
+
+    // 토큰 파싱: 만료 시간
+    public Optional<Long> getExpiration(String token) {
+        return safelyParseClaims(token)
+                .map(Claims::getExpiration)
+                .map(exp -> exp.getTime() - System.currentTimeMillis());
     }
 
     // 토큰 검증 (만료 포함)
     public boolean validateToken(String token, String expectedType) {
-        try {
-            Claims claims = parseClaims(token);
-            return expectedType.equals(claims.get("type", String.class));
-        } catch (JwtException | IllegalArgumentException e) {
-            log.warn("JWT 검증 실패: {}", e.getMessage());
-            return false;
-        }
+        return safelyParseClaims(token)
+                .map(claims -> expectedType.equals(claims.get(CLAIM_TYPE, String.class)))
+                .orElse(false);
     }
 
-    // 토큰에서 Claims 파싱
-    private Claims parseClaims(String token) {
-        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+    public boolean isAccessToken(String token) {
+        return validateToken(token, TOKEN_TYPE_ACCESS);
     }
+
+    public boolean isRefreshToken(String token) {
+        return validateToken(token, TOKEN_TYPE_REFRESH);
+    }
+
+
 
     // 헤더에서 AccessToken 추출
-    public String extractAccessToken(HttpServletRequest request) {
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header != null && header.startsWith("Bearer ")) {
-            return header.substring(7);
-        }
-        return null;
+    public Optional<String> extractAccessToken(HttpServletRequest request) {
+        return Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))
+                .filter(header -> header.startsWith("Bearer "))
+                .map(header -> header.substring(7));
     }
 
     // 쿠키에서 RefreshToken 추출
-    public String extractRefreshToken(HttpServletRequest request) {
-        if (request.getCookies() == null) return null;
+    public Optional<String> extractRefreshToken(HttpServletRequest request) {
+        if (request.getCookies() == null) return Optional.empty();
         for (Cookie cookie : request.getCookies()) {
-            if ("refresh".equals(cookie.getName())) {
-                return cookie.getValue();
+            if (COOKIE_NAME_REFRESH.equals(cookie.getName())) {
+                return Optional.ofNullable(cookie.getValue());
             }
         }
-        return null;
+        return Optional.empty();
     }
 
-    public long getExpiration(String token) {
-        Date expiration = parseClaims(token).getExpiration();
-        return expiration.getTime() - System.currentTimeMillis();
+    private ResponseCookie buildRefreshCookie(String value, long maxAge) {
+        return ResponseCookie.from(COOKIE_NAME_REFRESH, value)
+                .maxAge(maxAge)
+                .path("/")
+                .httpOnly(true)
+                .secure(secure)
+                .sameSite("Lax")
+                .build();
     }
+
 }

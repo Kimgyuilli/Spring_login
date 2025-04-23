@@ -1,7 +1,6 @@
 package com.example.login.Common.response;
 
-import com.example.login.Common.exception.ErrorCode;
-import lombok.AllArgsConstructor;
+import com.example.login.Common.response.ErrorType.ErrorType;
 import lombok.Getter;
 
 @Getter
@@ -10,9 +9,9 @@ public class LoginErrorResponse {
     private final String error;
     private final String message;
 
-    public LoginErrorResponse(ErrorCode errorCode) {
-        this.status = errorCode.getStatus().value();
-        this.error = errorCode.getStatus().name();
-        this.message = errorCode.getMessage();
+    public LoginErrorResponse(ErrorType errorType) {
+        this.status = errorType.getStatus();
+        this.error = errorType.getCode();
+        this.message = errorType.getMessage();
     }
 }
