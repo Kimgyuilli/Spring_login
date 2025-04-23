@@ -51,7 +51,7 @@ public class JoinController {
     }
 
     @PostMapping("/email-check")
-    public @ResponseBody String emailCheck(@RequestParam("memberEmail") String memberEmail) {
+    public @ResponseBody boolean emailCheck(@RequestParam("memberEmail") String memberEmail) {
         System.out.println("memberEmail = " + memberEmail);
         return memberService.emailCheck(memberEmail);
     }

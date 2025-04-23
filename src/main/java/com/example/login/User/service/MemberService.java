@@ -10,18 +10,19 @@ import com.example.login.User.dto.request.MemberUpdateReq;
 import com.example.login.User.dto.response.MemberRes;
 import com.example.login.User.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+
 
     public void save(MemberSaveReq req) {
         // 중복 이메일 체크
@@ -33,10 +34,7 @@ public class MemberService {
         // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(req.getMemberPassword());
 
-        System.out.println("[회원가입] 이메일: " + req.getMemberEmail());
-        System.out.println("[회원가입] 인코딩된 비밀번호: " + encodedPassword);
-        System.out.println("[회원가입] 이름: " + req.getMemberName());
-        System.out.println("[회원가입] 역할: " + Role.ADMIN);
+        log.info("[회원가입] 이메일: {}, 이름: {}, 인코딩 비밀번호: {}", req.getMemberEmail(), req.getMemberName(), encodedPassword);
 
 
         MemberEntity memberEntity = MemberEntity.toMemberEntity(
@@ -51,44 +49,49 @@ public class MemberService {
 
 
     public List<MemberRes> findAll() {
-        List<MemberEntity> memberEntityList = memberRepository.findAll();
-        List<MemberRes> memberDTOList = new ArrayList<>();
-        for (MemberEntity memberEntity : memberEntityList) {
-            memberDTOList.add(MemberRes.toMemberDTO(memberEntity));
-        }
-        return memberDTOList;
+        return memberRepository.findAll()
+                .stream()
+                .map(MemberRes::toMemberDTO)
+                .toList();
     }
 
     public MemberRes findById(Long id) {
-        Optional<MemberEntity> optionalMemberEntity = memberRepository.findById(id);
-        return optionalMemberEntity.map(MemberRes::toMemberDTO).orElse(null);
+        return memberRepository.findById(id)
+                .map(MemberRes::toMemberDTO)
+                .orElseThrow(() -> new BaseException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     public MemberRes updateForm(String myEmail) {
-        Optional<MemberEntity> optionalMemberEntity = memberRepository.findByMemberEmail(myEmail);
-        return optionalMemberEntity.map(MemberRes::toMemberDTO).orElse(null);
+        return memberRepository.findByMemberEmail(myEmail)
+                .map(MemberRes::toMemberDTO)
+                .orElseThrow(() -> new BaseException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     public void update(MemberUpdateReq req) {
+        MemberEntity entity = memberRepository.findById(req.getId())
+                .orElseThrow(() -> new BaseException(ErrorCode.MEMBER_NOT_FOUND));
+
         String encodedPassword = passwordEncoder.encode(req.getMemberPassword());
+
         MemberEntity updated = MemberEntity.toUpdateMemberEntity(
-                req.getId(), req.getMemberEmail(), req.getMemberName(), encodedPassword, Role.ADMIN
+                req.getId(),
+                req.getMemberEmail(),
+                req.getMemberName(),
+                encodedPassword,
+                entity.getRole() // 기존 역할 유지
         );
         memberRepository.save(updated);
     }
 
     public void deleteById(Long id) {
+        if (!memberRepository.existsById(id)) {
+            throw new BaseException(ErrorCode.MEMBER_NOT_FOUND);
+        }
         memberRepository.deleteById(id);
     }
 
-    public String emailCheck(String memberEmail) {
-        Optional<MemberEntity> optionalMemberEntity = memberRepository.findByMemberEmail(memberEmail);
-        if (optionalMemberEntity.isPresent()) {
-            // 조회결과 존재 -> 사용 불가
-            return null;
-        } else {
-            // 사용 가능
-            return "ok";
-        }
+    // 개선
+    public boolean emailCheck(String memberEmail) {
+        return !memberRepository.existsByMemberEmail(memberEmail);
     }
 }
