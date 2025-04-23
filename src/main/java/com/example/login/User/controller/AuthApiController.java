@@ -1,21 +1,18 @@
 package com.example.login.User.controller;
 
+import com.example.login.Common.dto.ApiRes;
 import com.example.login.Common.jwt.JWTService;
 import com.example.login.Common.jwt.JWTUtil;
+import com.example.login.Common.response.SuccessType.MemberSuccessCode;
 import com.example.login.Refresh.Entity.RefreshToken;
 import com.example.login.Refresh.repository.RefreshTokenRepository;
 import com.example.login.Refresh.service.BlacklistService;
 import com.example.login.Refresh.service.RefreshTokenService;
 import com.example.login.User.domain.Role;
-import com.example.login.User.dto.request.MemberLoginReq;
-import com.example.login.User.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,28 +20,23 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/member")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthApiController {
 
     private final JWTUtil jwtUtil;
-    private final RefreshTokenService refreshTokenService;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final BlacklistService blacklistService;
-    private final MemberService memberService;
     private final JWTService jwtService;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenService refreshTokenService;
+    private final BlacklistService blacklistService;
 
-    @GetMapping("/login-page")
-    public String loginForm(Model model) {
-        model.addAttribute("memberLoginReq", new MemberLoginReq());
-        return "login";
-    }
-
-    // Access Token 재발급
+    /**
+     * AccessToken 재발급
+     */
     @PostMapping("/token/refresh")
     public ResponseEntity<?> reissueAccessToken(HttpServletRequest request, HttpServletResponse response) {
         return jwtUtil.extractRefreshToken(request)
-                .filter(token -> jwtUtil.validateToken(token, "refresh"))
+                .filter(jwtUtil::isRefreshToken)
                 .flatMap(validRefreshToken -> jwtUtil.getId(validRefreshToken)
                         .flatMap(memberId -> {
                             RefreshToken stored = refreshTokenRepository.findById(memberId).orElse(null);
@@ -59,17 +51,19 @@ public class AuthController {
                             }
 
                             jwtService.reissueAccessToken(response, memberId, roleOpt.get(), emailOpt.get());
-                            return Optional.of(ResponseEntity.ok("Access 토큰 재발급 완료"));
+                            return Optional.of(ResponseEntity.ok(ApiRes.success(MemberSuccessCode.TOKEN_REISSUE_SUCCESS)));
                         }))
                 .orElseGet(() -> ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED)
-                        .body("리프레시 토큰 검증 실패 또는 정보 추출 실패"));
+                        .body(ApiRes.fail(com.example.login.Common.response.ErrorType.ErrorCode.INVALID_TOKEN)));
     }
 
-    // Refresh Token을 포함한 Access Token 재발급
+    /**
+     * Access + RefreshToken 모두 재발급 (Refresh Rotation)
+     */
     @PostMapping("/token/refresh/full")
     public ResponseEntity<?> reissueAccessAndRefreshToken(HttpServletRequest request, HttpServletResponse response) {
         return jwtUtil.extractRefreshToken(request)
-                .filter(token -> jwtUtil.validateToken(token, "refresh"))
+                .filter(jwtUtil::isRefreshToken)
                 .flatMap(validRefreshToken -> jwtUtil.getId(validRefreshToken)
                         .flatMap(memberId -> {
                             RefreshToken stored = refreshTokenRepository.findById(memberId).orElse(null);
@@ -84,40 +78,30 @@ public class AuthController {
                             }
 
                             jwtService.reissueAllTokens(response, memberId, roleOpt.get(), emailOpt.get());
-                            return Optional.of(ResponseEntity.ok("Access/Refresh 토큰 재발급 완료"));
+                            return Optional.of(ResponseEntity.ok(ApiRes.success(MemberSuccessCode.TOKEN_REISSUE_FULL_SUCCESS)));
                         }))
                 .orElseGet(() -> ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED)
-                        .body("유효하지 않거나 일치하지 않는 리프레시 토큰입니다."));
+                        .body(ApiRes.fail(com.example.login.Common.response.ErrorType.ErrorCode.INVALID_TOKEN)));
     }
 
-
+    /**
+     * 로그아웃
+     */
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
         jwtUtil.extractRefreshToken(request)
-                .filter(token -> jwtUtil.validateToken(token, "refresh"))
+                .filter(jwtUtil::isRefreshToken)
                 .flatMap(jwtUtil::getId)
                 .ifPresent(refreshTokenService::deleteRefreshToken);
 
         jwtService.expireRefreshCookie(response);
 
         jwtUtil.extractAccessToken(request)
-                .filter(token -> jwtUtil.validateToken(token, "access"))
+                .filter(jwtUtil::isAccessToken)
                 .flatMap(jwtUtil::getExpiration)
-                .ifPresent(expiration -> {
-                    jwtUtil.extractAccessToken(request).ifPresent(token -> {
-                        blacklistService.addToBlacklist(token, expiration);
-                    });
-                });
+                .ifPresent(exp -> jwtUtil.extractAccessToken(request)
+                        .ifPresent(token -> blacklistService.addToBlacklist(token, exp)));
 
-        response.setHeader("Authorization", "");
-
-        return ResponseEntity.ok("로그아웃 완료");
+        return ResponseEntity.ok(ApiRes.success(MemberSuccessCode.LOGOUT_SUCCESS));
     }
-
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "index";
-    }
-
 }

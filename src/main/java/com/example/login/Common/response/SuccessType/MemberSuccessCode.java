@@ -13,7 +13,8 @@ public enum MemberSuccessCode implements SuccessType {
     EMAIL_CHECK_OK("S204", "이메일 사용 가능"),
     MEMBER_CREATED("S205", "회원가입 성공"),
     MEMBER_UPDATED("S206", "회원 정보 수정 성공"),
-    MEMBER_DELETED("S207", "회원 삭제 성공");
+    MEMBER_DELETED("S207", "회원 삭제 성공"),
+    MEMBER_VIEW("S208", "회원 정보 조회 성공");
 
     private final String code;
     private final String message;
