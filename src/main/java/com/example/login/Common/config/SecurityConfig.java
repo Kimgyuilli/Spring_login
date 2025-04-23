@@ -27,10 +27,23 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.util.Collections;
 import java.util.List;
 
+
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private static final String[] PUBLIC_URLS = {
+            "/", "/favicon.ico",
+            "/member", "/member/save", "/member/login",
+            "/member/token/refresh", "/member/token/refresh/full",
+            "/member/logout", "/member/email-check"
+    };
+
+    private static final String[] ADMIN_URLS = {
+            "/admin"
+    };
 
     private final JWTUtil jwtUtil;
     private final ObjectMapper objectMapper;
@@ -55,7 +68,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authManager) throws Exception {
 
         LoginFilter loginFilter = new LoginFilter(authManager, objectMapper, jwtService);
-
         loginFilter.setFilterProcessesUrl("/member/login");
 
         http
@@ -78,8 +90,8 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/member", "/member/save", "/member/login", "/member/token/refresh", "/member/token/refresh/full", "/member/logout", "/member/email-check", "/favicon.ico").permitAll()
-                        .requestMatchers("/admin").hasRole("ADMIN")
+                        .requestMatchers(PUBLIC_URLS).permitAll()
+                        .requestMatchers(ADMIN_URLS).hasRole("ADMIN")
                         .anyRequest().authenticated())
 
                 .exceptionHandling(except -> except
@@ -87,13 +99,11 @@ public class SecurityConfig {
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")
                         ));
 
-
         http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(
                 new JwtAuthenticationFilter(jwtUtil, blacklistService, customUserDetailsService),
                 UsernamePasswordAuthenticationFilter.class
         );
-
 
         return http.build();
     }
