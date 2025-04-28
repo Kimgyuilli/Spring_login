@@ -5,7 +5,10 @@ spring:
   profiles:
     active: dev # 프로파일 설정
   config:
-    import: optional:file:.env[.properties]
+    import:
+    - optional:file:.env[.properties]
+    - classpath:application-oauth.yml
+
 
   datasource:
     url: jdbc:postgresql://db:5432/LoginProject
