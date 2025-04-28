@@ -1,5 +1,6 @@
 package com.example.login.User.repository;
 
+import com.example.login.Common.oauth2.entity.SocialType;
 import com.example.login.User.domain.MemberEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -15,4 +16,6 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long> {
     Boolean existsByMemberEmail(String memberEmail);
 
     MemberEntity findByMemberEmailIgnoreCase(String memberEmail);
+
+    Optional<MemberEntity> findBySocialTypeAndSocialId(SocialType socialType, String socialId);
 }

@@ -4,6 +4,9 @@ import com.example.login.Common.jwt.JWTService;
 import com.example.login.Common.jwt.JWTUtil;
 import com.example.login.Common.jwt.JwtAuthenticationFilter;
 import com.example.login.Common.jwt.LoginFilter;
+import com.example.login.Common.oauth2.OAuth2LoginFailureHandler;
+import com.example.login.Common.oauth2.OAuth2LoginSuccessHandler;
+import com.example.login.Common.oauth2.service.CustomOAuth2UserService;
 import com.example.login.Refresh.service.BlacklistService;
 import com.example.login.Refresh.service.RefreshTokenService;
 import com.example.login.User.security.CustomUserDetailsService;
@@ -35,7 +38,7 @@ public class SecurityConfig {
 
     private static final String[] PUBLIC_URLS = {
             "/api/join", "/api/join/email-check", "/api/auth/login",
-            "/api/auth/token/refresh", "/api/auth/token/refresh/full", "/api/auth/logout", "/api-docs-ui", "/v3/api-docs/**", "/swagger-ui/**",
+            "/api/auth/token/refresh", "/api/auth/token/refresh/full", "/api/auth/logout", "/api-docs", "/v3/api-docs/**", "/swagger-ui/**",
     };
 
     private static final String[] ADMIN_URLS = {
@@ -48,6 +51,10 @@ public class SecurityConfig {
     private final BlacklistService blacklistService;
     private final CustomUserDetailsService customUserDetailsService;
     private final JWTService jwtService;
+
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -92,6 +99,16 @@ public class SecurityConfig {
                 .exceptionHandling(except -> except
                         .authenticationEntryPoint((request, response, authException) ->
                                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized")));
+
+
+        http.oauth2Login(oauth2 -> oauth2
+                .successHandler(oAuth2LoginSuccessHandler)
+                .failureHandler(oAuth2LoginFailureHandler)
+                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+        );
+
+
+
 
         http.addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(

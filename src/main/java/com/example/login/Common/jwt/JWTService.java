@@ -68,4 +68,42 @@ public class JWTService {
         ResponseCookie expired = jwtUtil.invalidateRefreshToken();
         response.setHeader(HttpHeaders.SET_COOKIE, expired.toString());
     }
+
+
+    // 1. 소셜 로그인(GUEST)용 AccessToken 생성
+    public String createAccessToken(String email) {
+        return jwtUtil.createAccessToken(
+                "",         // ID 없음 (GUEST)
+                Role.GUEST, // 기본 Role은 GUEST
+                email
+        );
+    }
+
+    // 2. AccessToken만 보내기
+    public void sendAccessToken(HttpServletResponse response, String accessToken) {
+        response.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
+        log.info("AccessToken만 응답 헤더로 전송 완료");
+    }
+
+    // 3. 일반 로그인용 RefreshToken 생성
+    public String createRefreshToken() {
+        return jwtUtil.createRefreshToken(
+                "",          // ID 없음 (지금 구조에서는 ID 채우는 로직 추가 가능)
+                Role.USER,   // 기본 Role은 USER
+                ""
+        );
+    }
+
+    // 4. AccessToken + RefreshToken 모두 보내기
+    public void sendAccessAndRefreshToken(HttpServletResponse response, String accessToken, String refreshToken) {
+        setAccessToken(response, accessToken);
+        setRefreshCookie(response, refreshToken);
+        log.info("AccessToken과 RefreshToken 모두 응답 완료");
+    }
+
+    // 5. RefreshToken 저장 (Redis 저장)
+    public void updateRefreshToken(String email, String refreshToken) {
+        refreshTokenService.saveToken(email, refreshToken);
+        log.info("DB/Redis에 RefreshToken 갱신 완료");
+    }
 }
