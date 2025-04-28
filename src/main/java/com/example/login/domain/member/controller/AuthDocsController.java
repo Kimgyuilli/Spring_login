@@ -4,6 +4,7 @@ package com.example.login.domain.member.controller;
 import com.example.login.domain.member.dto.request.MemberLoginReq;
 import com.example.login.domain.member.dto.response.MemberLoginRes;
 import com.example.login.global.dto.ApiRes;
+import com.example.login.global.response.SuccessType.MemberSuccessCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,6 +34,6 @@ public class AuthDocsController {
                     content = @Content(schema = @Schema(implementation = MemberLoginReq.class)))
             MemberLoginReq req
     ) {
-        return ResponseEntity.ok(ApiRes.success(null)); // 실제 동작 안함. 문서용임.
+        return ResponseEntity.ok(ApiRes.success(MemberSuccessCode.LOGIN_SUCCESS)); // 실제 동작 안함. 문서용임.
     }
 }
