@@ -69,7 +69,6 @@ chmod +x restart.sh
 - **Spring Data Redis + Redis**
 - **JWT (io.jsonwebtoken 0.12.5)**
 - **Lombok, Validation**
-- **Thymeleaf (SSR View - 선택적)**
 - **Postman / Swagger 연동 테스트용 API 제공**
 
 ---
@@ -111,6 +110,27 @@ chmod +x restart.sh
 - **Redis 저장 구조**
   - `refreshToken:{userId}` → 토큰 문자열
   - `blacklist:{accessToken}` → `"logout"` + TTL
+
+---
+
+### 🌐 소셜 로그인 (OAuth2 + JWT 통합)
+- Google, Naver, Kakao 소셜 로그인 지원
+ - OAuth2 인증 완료 시 JWT Access/Refresh Token 발급
+ - 최초 로그인 시 자동 회원가입 (DB 저장: socialType, socialId 필드 추가)
+ - 기존 가입자 → 자동 로그인 처리
+- 소셜로그인 흐름
+- 소셜 로그인 흐름
+  1. 사용자가 소셜 로그인 선택
+  2. OAuth2 인증 성공 → 서버가 JWT 토큰 발급
+  3. AccessToken (헤더), RefreshToken (쿠키) 제공
+  4. 일반 로그인과 동일하게 이후 인증 처리
+- 소셜 등록 Provider
+  - Google
+  - Naver
+  - Kakao
+- 지원 OAuth2 스펙
+  - Authorization Code Grant Type
+  - Profile, Email, Nickname 등의 기본 정보 획득
 
 ---
 
