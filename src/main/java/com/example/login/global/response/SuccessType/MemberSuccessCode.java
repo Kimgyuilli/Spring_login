@@ -14,7 +14,8 @@ public enum MemberSuccessCode implements SuccessType {
     MEMBER_CREATED("S205", "회원가입 성공"),
     MEMBER_UPDATED("S206", "회원 정보 수정 성공"),
     MEMBER_DELETED("S207", "회원 삭제 성공"),
-    MEMBER_VIEW("S208", "회원 정보 조회 성공");
+    MEMBER_VIEW("S208", "회원 정보 조회 성공"),
+    SOCIAL_LOGIN_SUCCESS("S209", "소셜 로그인 성공");
 
     private final String code;
     private final String message;
