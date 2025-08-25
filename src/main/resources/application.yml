@@ -52,6 +52,7 @@ security:
   admin-urls:
     - "/api/admin/**"
   default-role: "USER"
+  cors-max-age: 3600
 
 logging:
   level:

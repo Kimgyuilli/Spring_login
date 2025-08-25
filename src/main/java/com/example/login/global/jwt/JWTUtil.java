@@ -171,4 +171,11 @@ public class JWTUtil {
                 .build();
     }
 
+    public long getAccessTokenExpiration() {
+        return accessTokenExpiration;
+    }
+
+    public long getRefreshTokenExpiration() {
+        return refreshTokenExpiration;
+    }
 }

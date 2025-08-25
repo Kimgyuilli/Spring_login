@@ -13,6 +13,11 @@ public enum ErrorCode implements ErrorType {
     DUPLICATE_EMAIL("E409", "이미 가입된 이메일입니다", HttpStatus.CONFLICT.value()),
     INVALID_ROLE("E400", "잘못된 역할(Role)입니다", HttpStatus.BAD_REQUEST.value()),
     INVALID_TOKEN("E401", "유효하지 않은 토큰입니다", HttpStatus.UNAUTHORIZED.value()),
+    TOKEN_EXPIRED("E401", "만료된 토큰입니다", HttpStatus.UNAUTHORIZED.value()),
+    TOKEN_MALFORMED("E400", "잘못된 형식의 토큰입니다", HttpStatus.BAD_REQUEST.value()),
+    REFRESH_TOKEN_NOT_FOUND("E401", "리프레시 토큰을 찾을 수 없습니다", HttpStatus.UNAUTHORIZED.value()),
+    ACCESS_TOKEN_REQUIRED("E401", "액세스 토큰이 필요합니다", HttpStatus.UNAUTHORIZED.value()),
+    TOKEN_BLACKLISTED("E401", "차단된 토큰입니다", HttpStatus.UNAUTHORIZED.value()),
     OAUTH2_LOGIN_FAILED("E401", "소셜 로그인에 실패했습니다. 다시 시도해주세요.", HttpStatus.UNAUTHORIZED.value());
 
     private final String code;

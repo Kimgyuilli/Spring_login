@@ -1,4 +1,4 @@
-package com.example.login.global.config.security;
+package com.example.login.global.security;
 
 import com.example.login.domain.auth.service.AuthenticationService;
 import com.example.login.domain.auth.service.BlacklistService;
@@ -14,7 +14,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @RequiredArgsConstructor

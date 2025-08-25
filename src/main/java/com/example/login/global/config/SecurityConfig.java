@@ -1,8 +1,8 @@
 package com.example.login.global.config;
 
 import com.example.login.global.config.properties.SecurityProperties;
-import com.example.login.global.config.security.CorsConfig;
-import com.example.login.global.config.security.OAuth2SecurityConfig;
+import com.example.login.global.security.CorsConfig;
+import com.example.login.global.security.OAuth2SecurityConfig;
 import com.example.login.global.jwt.JwtAuthenticationFilter;
 import com.example.login.global.jwt.LoginFilter;
 import jakarta.servlet.http.HttpServletResponse;

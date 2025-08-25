@@ -16,6 +16,7 @@ public class SecurityProperties {
     private List<String> publicUrls;
     private List<String> adminUrls;
     private String defaultRole;
+    private long corsMaxAge = 3600L;
     
     public String[] getPublicUrlsArray() {
         return publicUrls != null ? publicUrls.toArray(new String[0]) : new String[0];

@@ -41,11 +41,11 @@ public class MemberService {
 
         Role defaultRole = Role.valueOf(securityProperties.getDefaultRole());
         
-        MemberEntity memberEntity = MemberEntity.toMemberEntity(
+        MemberEntity memberEntity = MemberEntity.createRegularMember(
                 req.getMemberEmail(),
                 req.getMemberName(),
-                encodedPassword, // 암호화된 비밀번호로 저장
-                defaultRole // 설정 파일에서 읽은 기본 역할
+                encodedPassword,
+                defaultRole
         );
 
         memberRepository.save(memberEntity);
@@ -62,40 +62,37 @@ public class MemberService {
     public MemberRes findById(Long id) {
         return memberRepository.findById(id)
                 .map(MemberRes::toMemberDTO)
-                .orElseThrow(() -> new BaseException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> memberNotFound());
     }
 
     public MemberRes updateForm(String myEmail) {
         return memberRepository.findByMemberEmail(myEmail)
                 .map(MemberRes::toMemberDTO)
-                .orElseThrow(() -> new BaseException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> memberNotFound());
     }
 
     public void update(MemberUpdateReq req) {
         MemberEntity entity = memberRepository.findById(req.getId())
-                .orElseThrow(() -> new BaseException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> memberNotFound());
 
         String encodedPassword = passwordEncoder.encode(req.getMemberPassword());
-
-        MemberEntity updated = MemberEntity.toUpdateMemberEntity(
-                req.getId(),
-                req.getMemberEmail(),
-                req.getMemberName(),
-                encodedPassword,
-                entity.getRole() // 기존 역할 유지
-        );
-        memberRepository.save(updated);
+        
+        entity.updateMemberInfo(req.getMemberName(), encodedPassword);
+        memberRepository.save(entity);
     }
 
     public void deleteById(Long id) {
         if (!memberRepository.existsById(id)) {
-            throw new BaseException(ErrorCode.MEMBER_NOT_FOUND);
+            throw memberNotFound();
         }
         memberRepository.deleteById(id);
     }
 
-    // 개선
     public boolean emailCheck(String memberEmail) {
         return !memberRepository.existsByMemberEmail(memberEmail);
+    }
+    
+    private BaseException memberNotFound() {
+        return new BaseException(ErrorCode.MEMBER_NOT_FOUND);
     }
 }

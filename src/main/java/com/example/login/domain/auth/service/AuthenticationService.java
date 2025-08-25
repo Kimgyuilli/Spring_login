@@ -1,6 +1,5 @@
 package com.example.login.domain.auth.service;
 
-import com.example.login.domain.auth.dto.request.TokenRefreshRequest;
 import com.example.login.domain.auth.dto.response.TokenResponse;
 import com.example.login.global.exception.BaseException;
 import com.example.login.global.response.ErrorType.ErrorCode;
@@ -88,25 +87,21 @@ public class AuthenticationService {
         log.info("Logout completed");
     }
     
-    public TokenResponse processTokenRefresh(TokenRefreshRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-        TokenRefreshRequest.RefreshType refreshType = request.getRefreshTypeEnum();
-        
-        return switch (refreshType) {
-            case ACCESS_ONLY -> refreshAccessToken(httpRequest, httpResponse);
-            case FULL_REFRESH -> refreshAllTokens(httpRequest, httpResponse);
-        };
-    }
     
     private String extractRefreshTokenFromRequest(HttpServletRequest request) {
         return jwtUtil.extractRefreshToken(request)
-            .orElseThrow(() -> new BaseException(ErrorCode.INVALID_TOKEN));
+            .orElseThrow(() -> new BaseException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
     }
     
     private String extractAccessTokenFromResponse(HttpServletResponse response) {
-        return "token-extracted"; 
+        String authHeader = response.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
     }
     
     private Long getAccessTokenExpirySeconds() {
-        return 3600L;
+        return jwtUtil.getAccessTokenExpiration() / 1000;
     }
 }

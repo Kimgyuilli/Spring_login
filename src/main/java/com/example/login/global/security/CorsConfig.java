@@ -1,5 +1,7 @@
-package com.example.login.global.config.security;
+package com.example.login.global.security;
 
+import com.example.login.global.config.properties.SecurityProperties;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -8,7 +10,10 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import java.util.List;
 
 @Configuration
+@RequiredArgsConstructor
 public class CorsConfig {
+
+    private final SecurityProperties securityProperties;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -19,7 +24,7 @@ public class CorsConfig {
             config.setAllowCredentials(true);
             config.setAllowedHeaders(List.of("*"));
             config.setExposedHeaders(List.of("Authorization"));
-            config.setMaxAge(3600L);
+            config.setMaxAge(securityProperties.getCorsMaxAge());
             return config;
         };
     }

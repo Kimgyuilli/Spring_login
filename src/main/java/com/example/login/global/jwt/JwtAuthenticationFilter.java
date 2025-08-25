@@ -59,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (blacklistService.isBlacklisted(token)) {
             log.warn("블랙리스트에 등록된 토큰입니다.");
-            sendUnauthorized(response, "블랙리스트 토큰입니다.");
+            sendUnauthorized(response, "TOKEN_BLACKLISTED");
             return false;
         }
 

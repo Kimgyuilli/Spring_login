@@ -39,7 +39,7 @@ public class MemberEntity extends BaseTimeEntity {
     @Column(nullable = true)
     private String socialId;
 
-    public static MemberEntity toMemberEntity(String email, String name, String password, Role role) {
+    public static MemberEntity createRegularMember(String email, String name, String password, Role role) {
         return MemberEntity.builder()
                 .memberEmail(email)
                 .memberName(name)
@@ -48,17 +48,7 @@ public class MemberEntity extends BaseTimeEntity {
                 .build();
     }
 
-    public static MemberEntity toUpdateMemberEntity(Long id, String email, String name, String password, Role role) {
-        return MemberEntity.builder()
-                .id(id)
-                .memberEmail(email)
-                .memberName(name)
-                .memberPassword(password)
-                .role(role)
-                .build();
-    }
-
-    public static MemberEntity socialLogin(String email, String name, String password, Role role, SocialType socialType, String socialId) {
+    public static MemberEntity createSocialMember(String email, String name, String password, Role role, SocialType socialType, String socialId) {
         return MemberEntity.builder()
                 .memberEmail(email)
                 .memberName(name)
@@ -67,6 +57,11 @@ public class MemberEntity extends BaseTimeEntity {
                 .socialType(socialType)
                 .socialId(socialId)
                 .build();
+    }
+    
+    public void updateMemberInfo(String name, String password) {
+        this.memberName = name;
+        this.memberPassword = password;
     }
 
 
