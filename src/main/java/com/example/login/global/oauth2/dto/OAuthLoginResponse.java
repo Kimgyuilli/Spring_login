@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @Builder
 @Schema(description = "소셜 로그인 성공 응답")
-public class OAuthLoginRes {
+public class OAuthLoginResponse {
 
     @Schema(description = "액세스 토큰", example = "eyJhbGciOiJIUzI1NiJ9...")
     private final String accessToken;

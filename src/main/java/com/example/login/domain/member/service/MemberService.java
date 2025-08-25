@@ -6,9 +6,9 @@ import com.example.login.global.exception.BaseException;
 import com.example.login.global.response.ErrorType.ErrorCode;
 import com.example.login.domain.member.entity.MemberEntity;
 import com.example.login.domain.member.entity.Role;
-import com.example.login.domain.member.dto.request.MemberSaveReq;
-import com.example.login.domain.member.dto.request.MemberUpdateReq;
-import com.example.login.domain.member.dto.response.MemberRes;
+import com.example.login.domain.member.dto.request.MemberSaveRequest;
+import com.example.login.domain.member.dto.request.MemberUpdateRequest;
+import com.example.login.domain.member.dto.response.MemberResponse;
 import com.example.login.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class MemberService {
     private final SecurityProperties securityProperties;
 
 
-    public void save(MemberSaveReq req) {
+    public void save(MemberSaveRequest req) {
         // 중복 이메일 체크
         boolean exists = memberRepository.findByMemberEmail(req.getMemberEmail()).isPresent();
         if (exists) {
@@ -52,26 +52,26 @@ public class MemberService {
     }
 
 
-    public List<MemberRes> findAll() {
+    public List<MemberResponse> findAll() {
         return memberRepository.findAll()
                 .stream()
-                .map(MemberRes::toMemberDTO)
+                .map(MemberResponse::fromEntity)
                 .toList();
     }
 
-    public MemberRes findById(Long id) {
+    public MemberResponse findById(Long id) {
         return memberRepository.findById(id)
-                .map(MemberRes::toMemberDTO)
+                .map(MemberResponse::fromEntity)
                 .orElseThrow(() -> memberNotFound());
     }
 
-    public MemberRes updateForm(String myEmail) {
+    public MemberResponse findMemberForUpdate(String myEmail) {
         return memberRepository.findByMemberEmail(myEmail)
-                .map(MemberRes::toMemberDTO)
+                .map(MemberResponse::fromEntity)
                 .orElseThrow(() -> memberNotFound());
     }
 
-    public void update(MemberUpdateReq req) {
+    public void update(MemberUpdateRequest req) {
         MemberEntity entity = memberRepository.findById(req.getId())
                 .orElseThrow(() -> memberNotFound());
 
@@ -88,7 +88,7 @@ public class MemberService {
         memberRepository.deleteById(id);
     }
 
-    public boolean emailCheck(String memberEmail) {
+    public boolean isEmailAvailable(String memberEmail) {
         return !memberRepository.existsByMemberEmail(memberEmail);
     }
     

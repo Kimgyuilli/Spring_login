@@ -33,7 +33,7 @@ public class AuthenticationService {
     public TokenResponse refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = extractRefreshTokenFromRequest(request);
         
-        TokenValidator.ValidationResult validation = tokenValidator.validateRefreshToken(refreshToken);
+        TokenValidator.TokenValidationResult validation = tokenValidator.validateRefreshToken(refreshToken);
         if (!validation.isValid()) {
             throw new BaseException(ErrorCode.INVALID_TOKEN);
         }
@@ -50,7 +50,7 @@ public class AuthenticationService {
     public TokenResponse refreshAllTokens(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = extractRefreshTokenFromRequest(request);
         
-        TokenValidator.ValidationResult validation = tokenValidator.validateRefreshToken(refreshToken);
+        TokenValidator.TokenValidationResult validation = tokenValidator.validateRefreshToken(refreshToken);
         if (!validation.isValid()) {
             throw new BaseException(ErrorCode.INVALID_TOKEN);
         }

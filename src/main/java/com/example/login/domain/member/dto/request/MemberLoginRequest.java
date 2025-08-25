@@ -11,7 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Schema(description = "회원 로그인 요청 DTO")
-public class MemberLoginReq {
+public class MemberLoginRequest {
 
     @Schema(description = "회원 이메일", example = "user@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "이메일은 필수입니다.")

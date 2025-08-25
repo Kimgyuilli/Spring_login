@@ -1,6 +1,6 @@
 package com.example.login.global.oauth2.handler;
 
-import com.example.login.global.dto.ApiRes;
+import com.example.login.global.dto.CommonApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,11 +24,11 @@ public class OAuth2LoginFailureHandler implements AuthenticationFailureHandler {
                                         AuthenticationException exception) throws IOException, ServletException {
         log.warn("소셜 로그인 실패 - 에러 메시지: {}", exception.getMessage());
 
-        // ApiRes로 감싼 실패 응답 생성
-        ApiRes<Void> apiRes = ApiRes.fail(ErrorCode.OAUTH2_LOGIN_FAILED); // ✅ 실패 코드 사용
+        // CommonApiResponse로 감싼 실패 응답 생성
+        CommonApiResponse<Void> apiResponse = CommonApiResponse.fail(ErrorCode.OAUTH2_LOGIN_FAILED); // ✅ 실패 코드 사용
 
         // JSON 변환
-        String errorResponse = objectMapper.writeValueAsString(apiRes);
+        String errorResponse = objectMapper.writeValueAsString(apiResponse);
 
         // 응답 설정
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401

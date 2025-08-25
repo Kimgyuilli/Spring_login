@@ -1,6 +1,6 @@
 package com.example.login.global.exception;
 
-import com.example.login.global.dto.ApiRes;
+import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.response.ErrorType.ErrorCode;
 import com.example.login.global.response.ErrorType.ErrorType;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleBaseException(BaseException e) {
         return ResponseEntity
                 .status(e.getErrorCode().getStatus())
-                .body(ApiRes.fail(e.getErrorCode()));
+                .body(CommonApiResponse.fail(e.getErrorCode()));
     }
 
     // 2. Enum 변환 에러 (Role 등)
@@ -29,12 +29,12 @@ public class GlobalExceptionHandler {
         if (e.getTargetType().isEnum() && e.getTargetType().getSimpleName().equals("Role")) {
             return ResponseEntity
                     .status(ErrorCode.INVALID_ROLE.getStatus())
-                    .body(ApiRes.fail(ErrorCode.INVALID_ROLE));
+                    .body(CommonApiResponse.fail(ErrorCode.INVALID_ROLE));
         }
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiRes.fail(new ErrorType() {
+                .body(CommonApiResponse.fail(new ErrorType() {
                     @Override
                     public String getCode() {
                         return "E400";
@@ -57,6 +57,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleUsernameNotFound(UsernameNotFoundException e) {
         return ResponseEntity
                 .status(ErrorCode.MEMBER_NOT_FOUND.getStatus())
-                .body(ApiRes.fail(ErrorCode.MEMBER_NOT_FOUND));
+                .body(CommonApiResponse.fail(ErrorCode.MEMBER_NOT_FOUND));
     }
 }

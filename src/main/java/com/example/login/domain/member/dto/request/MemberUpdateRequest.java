@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "회원 정보 수정 요청 DTO")
-public class MemberUpdateReq {
+public class MemberUpdateRequest {
 
     @Schema(description = "회원 ID (경로에서 전달되며 내부 설정용)", example = "1")
     private Long id;

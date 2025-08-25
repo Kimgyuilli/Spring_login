@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Schema(description = "회원가입 요청 DTO")
-public class MemberSaveReq {
+public class MemberSaveRequest {
 
     @Schema(description = "회원 이메일", example = "newuser@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "이메일은 필수입니다.")

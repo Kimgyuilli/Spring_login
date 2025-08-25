@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "회원 정보 응답 DTO")
-public class MemberRes {
+public class MemberResponse {
 
     @Schema(description = "회원 고유 ID", example = "1")
     private Long id;
@@ -22,8 +22,8 @@ public class MemberRes {
     private String memberEmail;
 
 
-    public static MemberRes toMemberDTO(MemberEntity memberEntity) {
-        return MemberRes.builder()
+    public static MemberResponse fromEntity(MemberEntity memberEntity) {
+        return MemberResponse.builder()
                 .id(memberEntity.getId())
                 .memberName(memberEntity.getMemberName())
                 .memberEmail(memberEntity.getMemberEmail())

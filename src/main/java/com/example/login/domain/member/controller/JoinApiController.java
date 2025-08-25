@@ -1,11 +1,11 @@
 package com.example.login.domain.member.controller;
 
-import com.example.login.global.dto.ApiRes;
+import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.exception.BaseException;
 import com.example.login.global.response.AutoApiResponse;
 import com.example.login.global.response.ErrorType.ErrorCode;
 import com.example.login.global.response.SuccessType.MemberSuccessCode;
-import com.example.login.domain.member.dto.request.MemberSaveReq;
+import com.example.login.domain.member.dto.request.MemberSaveRequest;
 import com.example.login.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -37,7 +37,7 @@ public class JoinApiController {
             @ApiResponse(responseCode = "409", description = "이메일 중복", content = @Content)
     })
     @PostMapping
-    public void join(@RequestBody @Valid MemberSaveReq req) {
+    public void join(@RequestBody @Valid MemberSaveRequest req) {
         memberService.save(req);
     }
 
@@ -52,7 +52,7 @@ public class JoinApiController {
     })
     @PostMapping("/email-check")
     public void emailCheck(@RequestParam String memberEmail) {
-        boolean isAvailable = memberService.emailCheck(memberEmail);
+        boolean isAvailable = memberService.isEmailAvailable(memberEmail);
         if (!isAvailable) {
             throw new BaseException(ErrorCode.DUPLICATE_EMAIL);
         }

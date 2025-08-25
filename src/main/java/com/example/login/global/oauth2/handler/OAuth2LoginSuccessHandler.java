@@ -2,9 +2,9 @@ package com.example.login.global.oauth2.handler;
 
 import com.example.login.domain.member.entity.Role;
 import com.example.login.domain.member.repository.MemberRepository;
-import com.example.login.global.dto.ApiRes;
+import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.oauth2.service.OAuth2TokenService;
-import com.example.login.global.oauth2.dto.OAuthLoginRes;
+import com.example.login.global.oauth2.dto.OAuthLoginResponse;
 import com.example.login.global.oauth2.user.CustomOAuth2User;
 import com.example.login.global.response.SuccessType.MemberSuccessCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,23 +56,23 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     }
 
     private void handleNormalLogin(HttpServletResponse response, CustomOAuth2User oAuth2User) throws IOException {
-        // ✅ 여기서 JSON으로 ApiRes<OAuthLoginRes> 내려주는 처리
+        // ✅ 여기서 JSON으로 CommonApiResponse<OAuthLoginResponse> 내려주는 처리
         String accessToken = oAuth2TokenService.createGuestAccessToken(oAuth2User.getEmail());
         String refreshToken = oAuth2TokenService.createRefreshTokenForUser();
 
         oAuth2TokenService.sendAccessAndRefreshToken(response, accessToken, refreshToken);
         oAuth2TokenService.updateRefreshToken(oAuth2User.getEmail(), refreshToken);
 
-        // OAuthLoginRes 생성
-        OAuthLoginRes oAuthLoginRes = OAuthLoginRes.builder()
+        // OAuthLoginResponse 생성
+        OAuthLoginResponse oAuthLoginResponse = OAuthLoginResponse.builder()
                 .accessToken(accessToken)
                 .email(oAuth2User.getEmail())
                 .name(oAuth2User.getName())
                 .socialType(oAuth2User.getSocialType().name())
                 .build();
 
-        // ApiRes로 감싸기
-        ApiRes<OAuthLoginRes> apiRes = ApiRes.success(MemberSuccessCode.SOCIAL_LOGIN_SUCCESS, oAuthLoginRes);
+        // CommonApiResponse로 감싸기
+        CommonApiResponse<OAuthLoginResponse> apiResponse = CommonApiResponse.success(MemberSuccessCode.SOCIAL_LOGIN_SUCCESS, oAuthLoginResponse);
 
         // JSON 응답 설정
         response.setStatus(HttpServletResponse.SC_OK);
@@ -80,6 +80,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         response.setCharacterEncoding("UTF-8");
 
         // JSON으로 쓰기
-        response.getWriter().write(objectMapper.writeValueAsString(apiRes));
+        response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
     }
 }

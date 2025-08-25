@@ -1,8 +1,8 @@
 package com.example.login.global.jwt;
 
-import com.example.login.global.dto.ApiRes;
+import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.response.ErrorType.ErrorCode;
-import com.example.login.domain.member.dto.request.MemberLoginReq;
+import com.example.login.domain.member.dto.request.MemberLoginRequest;
 import com.example.login.domain.member.security.CustomUserDetails;
 import com.example.login.domain.auth.service.AuthenticationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,7 +31,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
         try {
-            var loginReq = objectMapper.readValue(request.getInputStream(), MemberLoginReq.class);
+            var loginReq = objectMapper.readValue(request.getInputStream(), MemberLoginRequest.class);
 
             var authToken = new UsernamePasswordAuthenticationToken(
                     loginReq.getMemberEmail(), loginReq.getMemberPassword()
@@ -60,7 +60,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         response.setStatus(ErrorCode.LOGIN_FAIL.getStatus());
         response.setContentType("application/json; charset=UTF-8");
 
-        String json = objectMapper.writeValueAsString(ApiRes.fail(ErrorCode.LOGIN_FAIL));
+        String json = objectMapper.writeValueAsString(CommonApiResponse.fail(ErrorCode.LOGIN_FAIL));
         response.getWriter().write(json);
     }
 }

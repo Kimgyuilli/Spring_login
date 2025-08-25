@@ -1,6 +1,6 @@
 package com.example.login.domain.auth.controller;
 
-import com.example.login.global.dto.ApiRes;
+import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.response.SuccessType.MemberSuccessCode;
 import com.example.login.domain.auth.service.AuthenticationService;
 import com.example.login.domain.auth.dto.response.TokenResponse;
@@ -30,12 +30,12 @@ public class AuthApiController {
             @ApiResponse(responseCode = "401", description = "유효하지 않은 토큰")
     })
     @PostMapping("/token/refresh")
-    public ResponseEntity<ApiRes<TokenResponse>> refreshAccessToken(
+    public ResponseEntity<CommonApiResponse<TokenResponse>> refreshAccessToken(
             HttpServletRequest request, 
             HttpServletResponse response) {
         
         TokenResponse tokenResponse = authenticationService.refreshAccessToken(request, response);
-        return ResponseEntity.ok(ApiRes.success(MemberSuccessCode.TOKEN_REISSUE_SUCCESS, tokenResponse));
+        return ResponseEntity.ok(CommonApiResponse.success(MemberSuccessCode.TOKEN_REISSUE_SUCCESS, tokenResponse));
     }
 
     @Operation(summary = "Access + Refresh Token 모두 재발급")
@@ -44,12 +44,12 @@ public class AuthApiController {
             @ApiResponse(responseCode = "401", description = "유효하지 않은 토큰")
     })
     @PostMapping("/token/refresh/full")
-    public ResponseEntity<ApiRes<TokenResponse>> refreshAllTokens(
+    public ResponseEntity<CommonApiResponse<TokenResponse>> refreshAllTokens(
             HttpServletRequest request, 
             HttpServletResponse response) {
         
         TokenResponse tokenResponse = authenticationService.refreshAllTokens(request, response);
-        return ResponseEntity.ok(ApiRes.success(MemberSuccessCode.TOKEN_REISSUE_FULL_SUCCESS, tokenResponse));
+        return ResponseEntity.ok(CommonApiResponse.success(MemberSuccessCode.TOKEN_REISSUE_FULL_SUCCESS, tokenResponse));
     }
 
     @Operation(summary = "로그아웃")
@@ -57,11 +57,11 @@ public class AuthApiController {
             @ApiResponse(responseCode = "200", description = "성공")
     })
     @PostMapping("/logout")
-    public ResponseEntity<ApiRes<Void>> logout(
+    public ResponseEntity<CommonApiResponse<Void>> logout(
             HttpServletRequest request, 
             HttpServletResponse response) {
         
         authenticationService.logout(request, response);
-        return ResponseEntity.ok(ApiRes.success(MemberSuccessCode.LOGOUT_SUCCESS));
+        return ResponseEntity.ok(CommonApiResponse.success(MemberSuccessCode.LOGOUT_SUCCESS));
     }
 }

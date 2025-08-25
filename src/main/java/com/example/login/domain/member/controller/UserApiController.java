@@ -1,10 +1,10 @@
 package com.example.login.domain.member.controller;
 
-import com.example.login.global.dto.ApiRes;
+import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.response.AutoApiResponse;
 import com.example.login.global.response.SuccessType.MemberSuccessCode;
-import com.example.login.domain.member.dto.request.MemberUpdateReq;
-import com.example.login.domain.member.dto.response.MemberRes;
+import com.example.login.domain.member.dto.request.MemberUpdateRequest;
+import com.example.login.domain.member.dto.response.MemberResponse;
 import com.example.login.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,7 +33,7 @@ public class UserApiController {
     )
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
-    public List<MemberRes> findAll() {
+    public List<MemberResponse> findAll() {
         return memberService.findAll();
     }
 
@@ -47,7 +47,7 @@ public class UserApiController {
             @ApiResponse(responseCode = "404", description = "해당 사용자가 존재하지 않음", content = @Content)
     })
     @GetMapping("/{id}")
-    public MemberRes findById(@PathVariable Long id) {
+    public MemberResponse findById(@PathVariable Long id) {
         return memberService.findById(id);
     }
 
@@ -63,7 +63,7 @@ public class UserApiController {
             @ApiResponse(responseCode = "404", description = "해당 사용자가 존재하지 않음", content = @Content)
     })
     @PutMapping("/{id}")
-    public void update(@PathVariable Long id, @RequestBody MemberUpdateReq req) {
+    public void update(@PathVariable Long id, @RequestBody MemberUpdateRequest req) {
         req.setId(id);
         memberService.update(req);
     }

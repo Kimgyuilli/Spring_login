@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @Schema(description = "공통 API 응답")
-public class ApiRes<T> {
+public class CommonApiResponse<T> {
 
     @Schema(description = "응답 코드", example = "M001" /* 또는 E001 등 */)
     private final String code;
@@ -19,21 +19,21 @@ public class ApiRes<T> {
     private final T data;
 
     // 성공 응답
-    public static <T> ApiRes<T> success(MemberSuccessCode successCode, T data) {
-        return new ApiRes<>(successCode.getCode(), successCode.getMessage(), data);
+    public static <T> CommonApiResponse<T> success(MemberSuccessCode successCode, T data) {
+        return new CommonApiResponse<>(successCode.getCode(), successCode.getMessage(), data);
     }
 
-    public static ApiRes<Void> success(MemberSuccessCode successCode) {
-        return new ApiRes<>(successCode.getCode(), successCode.getMessage(), null);
+    public static CommonApiResponse<Void> success(MemberSuccessCode successCode) {
+        return new CommonApiResponse<>(successCode.getCode(), successCode.getMessage(), null);
     }
 
     // 실패 응답
-    public static ApiRes<Void> fail(ErrorType errorType) {
-        return new ApiRes<>(errorType.getCode(), errorType.getMessage(), null);
+    public static CommonApiResponse<Void> fail(ErrorType errorType) {
+        return new CommonApiResponse<>(errorType.getCode(), errorType.getMessage(), null);
     }
 
     // 생성자
-    private ApiRes(String code, String message, T data) {
+    private CommonApiResponse(String code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
