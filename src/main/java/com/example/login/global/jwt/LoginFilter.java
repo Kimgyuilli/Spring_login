@@ -4,6 +4,7 @@ import com.example.login.global.dto.ApiRes;
 import com.example.login.global.response.ErrorType.ErrorCode;
 import com.example.login.domain.member.dto.request.MemberLoginReq;
 import com.example.login.domain.member.security.CustomUserDetails;
+import com.example.login.domain.auth.service.AuthenticationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +25,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
     private final ObjectMapper objectMapper;
-    private final JWTService jwtService;
+    private final AuthenticationService authenticationService;
 
 
     @Override
@@ -48,7 +49,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        jwtService.issueTokens(response, customUserDetails.getMember());
+        authenticationService.issueTokensOnLogin(response, customUserDetails.getMember());
 
         log.info("로그인 성공 - 사용자: {}", customUserDetails.getUsername());
 

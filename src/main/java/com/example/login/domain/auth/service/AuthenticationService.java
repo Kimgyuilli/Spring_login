@@ -1,0 +1,112 @@
+package com.example.login.domain.auth.service;
+
+import com.example.login.domain.auth.dto.request.TokenRefreshRequest;
+import com.example.login.domain.auth.dto.response.TokenResponse;
+import com.example.login.global.exception.BaseException;
+import com.example.login.global.response.ErrorType.ErrorCode;
+import com.example.login.global.jwt.JWTService;
+import com.example.login.global.jwt.JWTUtil;
+import com.example.login.domain.member.entity.MemberEntity;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class AuthenticationService {
+    
+    private final JWTUtil jwtUtil;
+    private final JWTService jwtService;
+    private final TokenValidator tokenValidator;
+    private final RefreshTokenService refreshTokenService;
+    private final BlacklistService blacklistService;
+    
+    public void issueTokensOnLogin(HttpServletResponse response, MemberEntity member) {
+        log.info("Issuing tokens for member: {}", member.getMemberEmail());
+        jwtService.issueTokens(response, member);
+    }
+    
+    public TokenResponse refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = extractRefreshTokenFromRequest(request);
+        
+        TokenValidator.ValidationResult validation = tokenValidator.validateRefreshToken(refreshToken);
+        if (!validation.isValid()) {
+            throw new BaseException(ErrorCode.INVALID_TOKEN);
+        }
+        
+        jwtService.reissueAccessToken(response, validation.getMemberId(), validation.getRole(), validation.getEmail());
+        
+        log.info("Access token refreshed for member: {}", validation.getMemberId());
+        return TokenResponse.accessOnly(
+            extractAccessTokenFromResponse(response), 
+            getAccessTokenExpirySeconds()
+        );
+    }
+    
+    public TokenResponse refreshAllTokens(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = extractRefreshTokenFromRequest(request);
+        
+        TokenValidator.ValidationResult validation = tokenValidator.validateRefreshToken(refreshToken);
+        if (!validation.isValid()) {
+            throw new BaseException(ErrorCode.INVALID_TOKEN);
+        }
+        
+        refreshTokenService.deleteRefreshToken(validation.getMemberId());
+        jwtService.reissueAllTokens(response, validation.getMemberId(), validation.getRole(), validation.getEmail());
+        
+        log.info("Full token refresh completed for member: {}", validation.getMemberId());
+        return TokenResponse.withRefresh(
+            extractAccessTokenFromResponse(response), 
+            getAccessTokenExpirySeconds()
+        );
+    }
+    
+    public void logout(HttpServletRequest request, HttpServletResponse response) {
+        jwtUtil.extractRefreshToken(request)
+            .filter(jwtUtil::isRefreshToken)
+            .flatMap(jwtUtil::getId)
+            .ifPresent(memberId -> {
+                refreshTokenService.deleteRefreshToken(memberId);
+                log.info("Refresh token deleted for member: {}", memberId);
+            });
+        
+        jwtService.expireRefreshCookie(response);
+        
+        jwtUtil.extractAccessToken(request)
+            .filter(jwtUtil::isAccessToken)
+            .ifPresent(accessToken -> {
+                jwtUtil.getExpiration(accessToken).ifPresent(expiration -> 
+                    blacklistService.addToBlacklist(accessToken, expiration)
+                );
+            });
+        
+        log.info("Logout completed");
+    }
+    
+    public TokenResponse processTokenRefresh(TokenRefreshRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        TokenRefreshRequest.RefreshType refreshType = request.getRefreshTypeEnum();
+        
+        return switch (refreshType) {
+            case ACCESS_ONLY -> refreshAccessToken(httpRequest, httpResponse);
+            case FULL_REFRESH -> refreshAllTokens(httpRequest, httpResponse);
+        };
+    }
+    
+    private String extractRefreshTokenFromRequest(HttpServletRequest request) {
+        return jwtUtil.extractRefreshToken(request)
+            .orElseThrow(() -> new BaseException(ErrorCode.INVALID_TOKEN));
+    }
+    
+    private String extractAccessTokenFromResponse(HttpServletResponse response) {
+        return "token-extracted"; 
+    }
+    
+    private Long getAccessTokenExpirySeconds() {
+        return 3600L;
+    }
+}
