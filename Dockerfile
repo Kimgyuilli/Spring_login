@@ -1,14 +1,20 @@
-# Java 17을 사용하는 슬림한 JDK 이미지
-FROM openjdk:17-jdk-slim
+# Multi-stage build for better optimization
+FROM gradle:8.5-jdk21 AS builder
 
-# 컨테이너 내 작업 디렉토리 생성
+# 소스코드 복사
+WORKDIR /app
+COPY . .
+
+# Gradle build (테스트 스킵하고 빌드만)
+RUN gradle clean build -x test
+
+# Runtime stage
+FROM openjdk:21-jdk-slim
+
 WORKDIR /app
 
-# build/libs 폴더에서 JAR 파일 복사 (와일드카드 사용)
-COPY build/libs/member-0.0.1-SNAPSHOT.jar app.jar
-
-# 환경 변수 파일 사용을 위해 `.env` 복사 (선택사항, 있으면)
-COPY .env .env
+# 빌드된 JAR 파일 복사
+COPY --from=builder /app/build/libs/*.jar app.jar
 
 # 애플리케이션 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]
