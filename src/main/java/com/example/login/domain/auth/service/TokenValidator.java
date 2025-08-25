@@ -1,7 +1,7 @@
 package com.example.login.domain.auth.service;
 
 import com.example.login.global.jwt.JWTUtil;
-import com.example.login.domain.auth.Entity.RefreshToken;
+import com.example.login.domain.auth.entity.RefreshToken;
 import com.example.login.domain.auth.repository.RefreshTokenRepository;
 import com.example.login.domain.member.entity.Role;
 import lombok.RequiredArgsConstructor;

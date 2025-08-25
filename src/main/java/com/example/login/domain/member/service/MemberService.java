@@ -1,6 +1,7 @@
 package com.example.login.domain.member.service;
 
 
+import com.example.login.global.config.properties.SecurityProperties;
 import com.example.login.global.exception.BaseException;
 import com.example.login.global.response.ErrorType.ErrorCode;
 import com.example.login.domain.member.entity.MemberEntity;
@@ -22,6 +23,7 @@ import java.util.List;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SecurityProperties securityProperties;
 
 
     public void save(MemberSaveReq req) {
@@ -37,11 +39,13 @@ public class MemberService {
         log.info("[회원가입] 이메일: {}, 이름: {}", req.getMemberEmail(), req.getMemberName());
 
 
+        Role defaultRole = Role.valueOf(securityProperties.getDefaultRole());
+        
         MemberEntity memberEntity = MemberEntity.toMemberEntity(
                 req.getMemberEmail(),
                 req.getMemberName(),
                 encodedPassword, // 암호화된 비밀번호로 저장
-                Role.ADMIN // 개발 중이니까 일단 ADMIN
+                defaultRole // 설정 파일에서 읽은 기본 역할
         );
 
         memberRepository.save(memberEntity);

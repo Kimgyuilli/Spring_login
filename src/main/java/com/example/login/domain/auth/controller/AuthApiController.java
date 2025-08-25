@@ -1,4 +1,4 @@
-package com.example.login.domain.member.controller;
+package com.example.login.domain.auth.controller;
 
 import com.example.login.global.dto.ApiRes;
 import com.example.login.global.response.SuccessType.MemberSuccessCode;

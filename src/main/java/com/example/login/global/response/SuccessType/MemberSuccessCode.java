@@ -6,7 +6,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum MemberSuccessCode implements SuccessType {
-    LOGIN_SUCCESS("S200", "로그인 성공"),
+    SUCCESS("S200", "성공"),
+    LOGIN_SUCCESS("S201", "로그인 성공"),
     LOGOUT_SUCCESS("S201", "로그아웃 성공"),
     TOKEN_REISSUE_SUCCESS("S202", "Access 토큰 재발급 성공"),
     TOKEN_REISSUE_FULL_SUCCESS("S203", "Access/Refresh 토큰 재발급 성공"),

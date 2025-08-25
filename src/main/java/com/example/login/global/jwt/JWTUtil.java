@@ -32,10 +32,10 @@ public class JWTUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.access-token-expiration}")
+    @Value("${jwt.access-token-expiration:3600000}")
     private long accessTokenExpiration;
 
-    @Value("${jwt.refresh-token-expiration}")
+    @Value("${jwt.refresh-token-expiration:86400000}")
     private long refreshTokenExpiration;
 
     @Value("${cookie.secure}")

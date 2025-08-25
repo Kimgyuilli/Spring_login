@@ -3,7 +3,7 @@ package com.example.login.global.oauth2.handler;
 import com.example.login.domain.member.entity.Role;
 import com.example.login.domain.member.repository.MemberRepository;
 import com.example.login.global.dto.ApiRes;
-import com.example.login.global.jwt.JWTService;
+import com.example.login.global.oauth2.service.OAuth2TokenService;
 import com.example.login.global.oauth2.dto.OAuthLoginRes;
 import com.example.login.global.oauth2.user.CustomOAuth2User;
 import com.example.login.global.response.SuccessType.MemberSuccessCode;
@@ -24,7 +24,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-    private final JWTService jwtService;
+    private final OAuth2TokenService oAuth2TokenService;
     private final MemberRepository userRepository;
     private final ObjectMapper objectMapper = new ObjectMapper(); // 직접 생성해도 되고, 빈 주입받아도 됨.
 
@@ -50,18 +50,18 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private void handleGuestLogin(HttpServletResponse response, CustomOAuth2User oAuth2User) throws IOException {
         // GUEST는 추가정보 입력을 위해 리다이렉트 유지
-        String accessToken = jwtService.createAccessToken(oAuth2User.getEmail());
-        jwtService.sendAccessToken(response, accessToken);
+        String accessToken = oAuth2TokenService.createGuestAccessToken(oAuth2User.getEmail());
+        oAuth2TokenService.sendAccessTokenOnly(response, accessToken);
         response.sendRedirect("/oauth2/sign-up");
     }
 
     private void handleNormalLogin(HttpServletResponse response, CustomOAuth2User oAuth2User) throws IOException {
         // ✅ 여기서 JSON으로 ApiRes<OAuthLoginRes> 내려주는 처리
-        String accessToken = jwtService.createAccessToken(oAuth2User.getEmail());
-        String refreshToken = jwtService.createRefreshToken();
+        String accessToken = oAuth2TokenService.createGuestAccessToken(oAuth2User.getEmail());
+        String refreshToken = oAuth2TokenService.createRefreshTokenForUser();
 
-        jwtService.sendAccessAndRefreshToken(response, accessToken, refreshToken);
-        jwtService.updateRefreshToken(oAuth2User.getEmail(), refreshToken);
+        oAuth2TokenService.sendAccessAndRefreshToken(response, accessToken, refreshToken);
+        oAuth2TokenService.updateRefreshToken(oAuth2User.getEmail(), refreshToken);
 
         // OAuthLoginRes 생성
         OAuthLoginRes oAuthLoginRes = OAuthLoginRes.builder()

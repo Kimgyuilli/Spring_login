@@ -4,7 +4,7 @@ import com.example.login.domain.auth.dto.request.TokenRefreshRequest;
 import com.example.login.domain.auth.dto.response.TokenResponse;
 import com.example.login.global.exception.BaseException;
 import com.example.login.global.response.ErrorType.ErrorCode;
-import com.example.login.global.jwt.JWTService;
+import com.example.login.global.jwt.JwtTokenService;
 import com.example.login.global.jwt.JWTUtil;
 import com.example.login.domain.member.entity.MemberEntity;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,14 +21,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthenticationService {
     
     private final JWTUtil jwtUtil;
-    private final JWTService jwtService;
+    private final JwtTokenService jwtTokenService;
     private final TokenValidator tokenValidator;
     private final RefreshTokenService refreshTokenService;
     private final BlacklistService blacklistService;
     
     public void issueTokensOnLogin(HttpServletResponse response, MemberEntity member) {
         log.info("Issuing tokens for member: {}", member.getMemberEmail());
-        jwtService.issueTokens(response, member);
+        jwtTokenService.issueTokens(response, member);
     }
     
     public TokenResponse refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
@@ -39,7 +39,7 @@ public class AuthenticationService {
             throw new BaseException(ErrorCode.INVALID_TOKEN);
         }
         
-        jwtService.reissueAccessToken(response, validation.getMemberId(), validation.getRole(), validation.getEmail());
+        jwtTokenService.reissueAccessToken(response, validation.getMemberId(), validation.getRole(), validation.getEmail());
         
         log.info("Access token refreshed for member: {}", validation.getMemberId());
         return TokenResponse.accessOnly(
@@ -57,7 +57,7 @@ public class AuthenticationService {
         }
         
         refreshTokenService.deleteRefreshToken(validation.getMemberId());
-        jwtService.reissueAllTokens(response, validation.getMemberId(), validation.getRole(), validation.getEmail());
+        jwtTokenService.reissueAllTokens(response, validation.getMemberId(), validation.getRole(), validation.getEmail());
         
         log.info("Full token refresh completed for member: {}", validation.getMemberId());
         return TokenResponse.withRefresh(
@@ -75,7 +75,7 @@ public class AuthenticationService {
                 log.info("Refresh token deleted for member: {}", memberId);
             });
         
-        jwtService.expireRefreshCookie(response);
+        jwtTokenService.expireRefreshCookie(response);
         
         jwtUtil.extractAccessToken(request)
             .filter(jwtUtil::isAccessToken)

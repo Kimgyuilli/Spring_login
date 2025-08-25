@@ -1,4 +1,4 @@
-package com.example.login.domain.auth.Entity;
+package com.example.login.domain.auth.entity;
 
 import lombok.*;
 import org.springframework.data.redis.core.RedisHash;

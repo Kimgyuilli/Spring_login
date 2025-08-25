@@ -1,6 +1,7 @@
 package com.example.login.domain.member.controller;
 
 import com.example.login.global.dto.ApiRes;
+import com.example.login.global.response.AutoApiResponse;
 import com.example.login.global.response.SuccessType.MemberSuccessCode;
 import com.example.login.domain.member.dto.request.MemberUpdateReq;
 import com.example.login.domain.member.dto.response.MemberRes;
@@ -19,6 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@AutoApiResponse
 @Tag(name = "회원 관리 API", description = "사용자 조회, 수정, 삭제 관련 API")
 public class UserApiController {
 
@@ -31,9 +33,8 @@ public class UserApiController {
     )
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
-    public ResponseEntity<ApiRes<List<MemberRes>>> findAll() {
-        List<MemberRes> members = memberService.findAll();
-        return ResponseEntity.ok(ApiRes.success(MemberSuccessCode.MEMBER_VIEW, members));
+    public List<MemberRes> findAll() {
+        return memberService.findAll();
     }
 
     // 특정 사용자 조회
@@ -46,9 +47,8 @@ public class UserApiController {
             @ApiResponse(responseCode = "404", description = "해당 사용자가 존재하지 않음", content = @Content)
     })
     @GetMapping("/{id}")
-    public ResponseEntity<ApiRes<MemberRes>> findById(@PathVariable Long id) {
-        MemberRes member = memberService.findById(id);
-        return ResponseEntity.ok(ApiRes.success(MemberSuccessCode.MEMBER_VIEW, member));
+    public MemberRes findById(@PathVariable Long id) {
+        return memberService.findById(id);
     }
 
     // 사용자 정보 수정
@@ -63,10 +63,9 @@ public class UserApiController {
             @ApiResponse(responseCode = "404", description = "해당 사용자가 존재하지 않음", content = @Content)
     })
     @PutMapping("/{id}")
-    public ResponseEntity<ApiRes<Void>> update(@PathVariable Long id, @RequestBody MemberUpdateReq req) {
+    public void update(@PathVariable Long id, @RequestBody MemberUpdateReq req) {
         req.setId(id);
         memberService.update(req);
-        return ResponseEntity.ok(ApiRes.success(MemberSuccessCode.MEMBER_UPDATED));
     }
 
     // 사용자 삭제
@@ -79,9 +78,8 @@ public class UserApiController {
             @ApiResponse(responseCode = "404", description = "해당 사용자가 존재하지 않음", content = @Content)
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiRes<Void>> delete(@PathVariable Long id) {
+    public void delete(@PathVariable Long id) {
         memberService.deleteById(id);
-        return ResponseEntity.ok(ApiRes.success(MemberSuccessCode.MEMBER_DELETED));
     }
 }
 
