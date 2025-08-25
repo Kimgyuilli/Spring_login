@@ -50,7 +50,7 @@ public class JoinApiController {
             @ApiResponse(responseCode = "200", description = "이메일 사용 가능"),
             @ApiResponse(responseCode = "409", description = "이메일 중복")
     })
-    @PostMapping("/email-check")
+    @GetMapping("/email-check")
     public void emailCheck(@RequestParam String memberEmail) {
         boolean isAvailable = memberService.isEmailAvailable(memberEmail);
         if (!isAvailable) {

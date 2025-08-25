@@ -27,13 +27,11 @@ public class MemberService {
 
 
     public void save(MemberSaveRequest req) {
-        // 중복 이메일 체크
         boolean exists = memberRepository.findByMemberEmail(req.getMemberEmail()).isPresent();
         if (exists) {
             throw new BaseException(ErrorCode.DUPLICATE_EMAIL);
         }
 
-        // 비밀번호 암호화
         String encodedPassword = passwordEncoder.encode(req.getMemberPassword());
 
         log.info("[회원가입] 이메일: {}, 이름: {}", req.getMemberEmail(), req.getMemberName());

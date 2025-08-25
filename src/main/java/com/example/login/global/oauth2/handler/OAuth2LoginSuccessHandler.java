@@ -25,8 +25,7 @@ import java.io.IOException;
 public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final OAuth2TokenService oAuth2TokenService;
-    private final MemberRepository userRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper(); // 직접 생성해도 되고, 빈 주입받아도 됨.
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
@@ -49,21 +48,18 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     }
 
     private void handleGuestLogin(HttpServletResponse response, CustomOAuth2User oAuth2User) throws IOException {
-        // GUEST는 추가정보 입력을 위해 리다이렉트 유지
         String accessToken = oAuth2TokenService.createGuestAccessToken(oAuth2User.getEmail());
         oAuth2TokenService.sendAccessTokenOnly(response, accessToken);
         response.sendRedirect("/oauth2/sign-up");
     }
 
     private void handleNormalLogin(HttpServletResponse response, CustomOAuth2User oAuth2User) throws IOException {
-        // ✅ 여기서 JSON으로 CommonApiResponse<OAuthLoginResponse> 내려주는 처리
         String accessToken = oAuth2TokenService.createGuestAccessToken(oAuth2User.getEmail());
         String refreshToken = oAuth2TokenService.createRefreshTokenForUser();
 
         oAuth2TokenService.sendAccessAndRefreshToken(response, accessToken, refreshToken);
         oAuth2TokenService.updateRefreshToken(oAuth2User.getEmail(), refreshToken);
 
-        // OAuthLoginResponse 생성
         OAuthLoginResponse oAuthLoginResponse = OAuthLoginResponse.builder()
                 .accessToken(accessToken)
                 .email(oAuth2User.getEmail())
@@ -71,15 +67,12 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 .socialType(oAuth2User.getSocialType().name())
                 .build();
 
-        // CommonApiResponse로 감싸기
         CommonApiResponse<OAuthLoginResponse> apiResponse = CommonApiResponse.success(MemberSuccessCode.SOCIAL_LOGIN_SUCCESS, oAuthLoginResponse);
 
-        // JSON 응답 설정
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        // JSON으로 쓰기
         response.getWriter().write(objectMapper.writeValueAsString(apiResponse));
     }
 }

@@ -18,7 +18,6 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
 
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
-        // @AutoApiResponse 어노테이션이 있는 메서드나 클래스만 처리
         return returnType.hasMethodAnnotation(AutoApiResponse.class) 
                 || returnType.getDeclaringClass().isAnnotationPresent(AutoApiResponse.class);
     }
@@ -27,18 +26,15 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
                                   Class<? extends HttpMessageConverter<?>> selectedConverterType,
                                   ServerHttpRequest request, ServerHttpResponse response) {
-        
-        // 이미 CommonApiResponse로 감싸져 있으면 그대로 반환
+
         if (body instanceof CommonApiResponse) {
             return body;
         }
-        
-        // Void 타입인 경우 데이터 없이 성공 응답
+
         if (body == null || returnType.getParameterType() == Void.class) {
             return CommonApiResponse.success(MemberSuccessCode.SUCCESS);
         }
-        
-        // 일반 데이터인 경우 성공 응답으로 감싸기
+
         return CommonApiResponse.success(MemberSuccessCode.SUCCESS, body);
     }
 }

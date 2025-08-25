@@ -17,21 +17,18 @@ import java.io.IOException;
 @Component
 public class OAuth2LoginFailureHandler implements AuthenticationFailureHandler {
 
-    private final ObjectMapper objectMapper = new ObjectMapper(); // ✅ ObjectMapper 추가
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
         log.warn("소셜 로그인 실패 - 에러 메시지: {}", exception.getMessage());
 
-        // CommonApiResponse로 감싼 실패 응답 생성
-        CommonApiResponse<Void> apiResponse = CommonApiResponse.fail(ErrorCode.OAUTH2_LOGIN_FAILED); // ✅ 실패 코드 사용
+        CommonApiResponse<Void> apiResponse = CommonApiResponse.fail(ErrorCode.OAUTH2_LOGIN_FAILED);
 
-        // JSON 변환
         String errorResponse = objectMapper.writeValueAsString(apiResponse);
 
-        // 응답 설정
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json; charset=UTF-8");
         response.getWriter().write(errorResponse);
     }

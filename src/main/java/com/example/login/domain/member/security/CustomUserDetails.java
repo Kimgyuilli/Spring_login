@@ -18,7 +18,6 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // Role.USER or Role.ADMIN → ROLE_USER / ROLE_ADMIN 형식으로 반환
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + member.getRole().name()));
     }
 
@@ -34,21 +33,21 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // 만료 안됨
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // 잠금 안됨
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // 인증 만료 안됨
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return true; // 활성화 상태
+        return true;
     }
 }
