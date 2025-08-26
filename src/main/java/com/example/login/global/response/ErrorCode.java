@@ -24,6 +24,8 @@ public enum ErrorCode implements ErrorType {
     
     MEMBER_NOT_FOUND("E404", "회원을 찾을 수 없습니다", HttpStatus.NOT_FOUND.value()),
     
+    TOO_MANY_REQUESTS("E429", "너무 많은 요청입니다. 잠시 후 다시 시도해주세요.", HttpStatus.TOO_MANY_REQUESTS.value()),
+    
     DUPLICATE_EMAIL("E409", "이미 가입된 이메일입니다", HttpStatus.CONFLICT.value()),
     
     // 5xx Server Error

@@ -64,6 +64,9 @@ dependencies {
 	// Hibernate Validator (Bean Validation을 위한 의존성)
 	implementation 'org.hibernate.validator:hibernate-validator'
 
+	// Guava (Rate Limiting을 위한 유틸리티 라이브러리)
+	implementation 'com.google.guava:guava:33.0.0-jre'
+
 
 	// === DB 드라이버 ===
 

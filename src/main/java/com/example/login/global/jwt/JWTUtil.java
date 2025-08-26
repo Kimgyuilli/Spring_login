@@ -89,7 +89,8 @@ public class JWTUtil {
                     .parseSignedClaims(token)
                     .getPayload());
         } catch (JwtException | IllegalArgumentException e) {
-            log.warn("JWT 파싱 실패: {}", e.getMessage());
+            log.warn("JWT validation failed");
+            log.debug("JWT parsing error details: {}", e.getMessage());
             return Optional.empty();
         }
     }
