@@ -5,6 +5,8 @@ import com.example.login.global.exception.BaseException;
 import com.example.login.global.response.AutoApiResponse;
 import com.example.login.global.response.ErrorCode;
 import com.example.login.global.response.MemberSuccessCode;
+import com.example.login.global.swagger.CustomExceptionDescription;
+import com.example.login.global.swagger.SwaggerResponseDescription;
 import com.example.login.domain.member.dto.request.MemberSaveRequest;
 import com.example.login.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,6 +39,7 @@ public class JoinApiController {
             @ApiResponse(responseCode = "409", description = "이메일 중복", content = @Content)
     })
     @PostMapping
+    @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_JOIN_ERROR)
     public void join(@RequestBody @Valid MemberSaveRequest req) {
         memberService.save(req);
     }
@@ -51,6 +54,7 @@ public class JoinApiController {
             @ApiResponse(responseCode = "409", description = "이메일 중복")
     })
     @GetMapping("/email-check")
+    @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
     public void emailCheck(@RequestParam String memberEmail) {
         boolean isAvailable = memberService.isEmailAvailable(memberEmail);
         if (!isAvailable) {

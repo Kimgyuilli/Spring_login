@@ -3,6 +3,8 @@ package com.example.login.domain.auth.controller;
 import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.response.MemberSuccessCode;
 import com.example.login.domain.auth.service.AuthenticationService;
+import com.example.login.global.swagger.CustomExceptionDescription;
+import com.example.login.global.swagger.SwaggerResponseDescription;
 import com.example.login.domain.auth.dto.response.TokenResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -30,6 +32,7 @@ public class AuthApiController {
             @ApiResponse(responseCode = "401", description = "유효하지 않은 토큰")
     })
     @PostMapping("/token/refresh")
+    @CustomExceptionDescription(SwaggerResponseDescription.AUTH_ERROR)
     public ResponseEntity<CommonApiResponse<TokenResponse>> refreshAccessToken(
             HttpServletRequest request, 
             HttpServletResponse response) {
@@ -44,6 +47,7 @@ public class AuthApiController {
             @ApiResponse(responseCode = "401", description = "유효하지 않은 토큰")
     })
     @PostMapping("/token/refresh/full")
+    @CustomExceptionDescription(SwaggerResponseDescription.AUTH_ERROR)
     public ResponseEntity<CommonApiResponse<TokenResponse>> refreshAllTokens(
             HttpServletRequest request, 
             HttpServletResponse response) {
@@ -57,6 +61,7 @@ public class AuthApiController {
             @ApiResponse(responseCode = "200", description = "성공")
     })
     @PostMapping("/logout")
+    @CustomExceptionDescription(SwaggerResponseDescription.AUTH_ERROR)
     public ResponseEntity<CommonApiResponse<Void>> logout(
             HttpServletRequest request, 
             HttpServletResponse response) {

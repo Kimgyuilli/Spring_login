@@ -4,6 +4,9 @@ import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.response.AutoApiResponse;
 import com.example.login.global.response.MemberSuccessCode;
 import com.example.login.domain.member.dto.request.MemberUpdateRequest;
+import com.example.login.global.swagger.CustomExceptionDescription;
+import com.example.login.global.swagger.SwaggerResponseDescription;
+import org.springframework.security.access.prepost.PreAuthorize;
 import com.example.login.domain.member.dto.response.MemberResponse;
 import com.example.login.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,6 +36,8 @@ public class UserApiController {
     )
     @ApiResponse(responseCode = "200", description = "조회 성공")
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
     public List<MemberResponse> findAll() {
         return memberService.findAll();
     }
@@ -47,6 +52,8 @@ public class UserApiController {
             @ApiResponse(responseCode = "404", description = "해당 사용자가 존재하지 않음", content = @Content)
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
+    @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
     public MemberResponse findById(@PathVariable Long id) {
         return memberService.findById(id);
     }
@@ -63,6 +70,8 @@ public class UserApiController {
             @ApiResponse(responseCode = "404", description = "해당 사용자가 존재하지 않음", content = @Content)
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
+    @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
     public void update(@PathVariable Long id, @RequestBody MemberUpdateRequest req) {
         req.setId(id);
         memberService.update(req);
@@ -78,6 +87,8 @@ public class UserApiController {
             @ApiResponse(responseCode = "404", description = "해당 사용자가 존재하지 않음", content = @Content)
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
     public void delete(@PathVariable Long id) {
         memberService.deleteById(id);
     }

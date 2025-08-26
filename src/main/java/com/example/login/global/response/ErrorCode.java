@@ -18,9 +18,18 @@ public enum ErrorCode implements ErrorType {
     REFRESH_TOKEN_NOT_FOUND("E401", "리프레시 토큰을 찾을 수 없습니다", HttpStatus.UNAUTHORIZED.value()),
     ACCESS_TOKEN_REQUIRED("E401", "액세스 토큰이 필요합니다", HttpStatus.UNAUTHORIZED.value()),
     TOKEN_BLACKLISTED("E401", "차단된 토큰입니다", HttpStatus.UNAUTHORIZED.value()),
-    OAUTH2_LOGIN_FAILED("E401", "소셜 로그인에 실패했습니다. 다시 시도해주세요.", HttpStatus.UNAUTHORIZED.value());
+    OAUTH2_LOGIN_FAILED("E401", "소셜 로그인에 실패했습니다. 다시 시도해주세요.", HttpStatus.UNAUTHORIZED.value()),
+    
+    // Common errors
+    INTERNAL_SERVER_ERROR("E500", "내부 서버 오류가 발생했습니다", HttpStatus.INTERNAL_SERVER_ERROR.value()),
+    INVALID_INPUT_VALUE("E400", "잘못된 입력값입니다", HttpStatus.BAD_REQUEST.value()),
+    PARAMETER_VALIDATION_ERROR("E400", "파라미터 검증에 실패했습니다", HttpStatus.BAD_REQUEST.value());
 
     private final String code;
     private final String message;
     private final int status;
+    
+    public int getHttpCode() {
+        return this.status;
+    }
 }
