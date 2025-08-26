@@ -1,14 +1,26 @@
 package com.example.login.global.config;
 
-import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+import org.springdoc.core.customizers.OperationCustomizer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.method.HandlerMethod;
 
 import com.example.login.global.advice.ParameterData;
 import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.response.ErrorCode;
-import com.example.login.global.response.ErrorInfo;
 import com.example.login.global.swagger.CustomExceptionDescription;
 import com.example.login.global.swagger.ExampleHolder;
 import com.example.login.global.swagger.SwaggerResponseDescription;
+
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Contact;
@@ -24,15 +36,6 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.servers.Server;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import org.springdoc.core.customizers.OperationCustomizer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.method.HandlerMethod;
 
 @OpenAPIDefinition(
         info = @Info(
@@ -61,11 +64,17 @@ import org.springframework.web.method.HandlerMethod;
 @Configuration
 public class SwaggerConfig {
 
+    @Value("${swagger.server.url:http://localhost:8080}")
+    private String serverUrl;
+    
+    @Value("${swagger.server.description:개발 서버}")
+    private String serverDescription;
+
     @Bean
     public OpenAPI customOpenAPI() {
         Server server = new Server();
-        server.setUrl("http://localhost:8080");
-        server.setDescription("개발 서버");
+        server.setUrl(serverUrl);
+        server.setDescription(serverDescription);
 
         return new OpenAPI().servers(List.of(server));
     }
