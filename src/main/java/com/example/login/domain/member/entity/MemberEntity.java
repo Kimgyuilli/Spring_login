@@ -13,7 +13,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "member_table")
+@Table(name = "member_table", indexes = {
+    @Index(name = "idx_member_email", columnList = "memberEmail"),
+    @Index(name = "idx_social_type_id", columnList = "socialType, socialId"),
+    @Index(name = "idx_role", columnList = "role")
+})
 public class MemberEntity extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

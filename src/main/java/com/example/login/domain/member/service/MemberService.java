@@ -1,31 +1,35 @@
 package com.example.login.domain.member.service;
 
+import java.util.List;
 
-import com.example.login.global.config.properties.SecurityProperties;
-import com.example.login.global.exception.BaseException;
-import com.example.login.global.response.ErrorCode;
-import com.example.login.domain.member.entity.MemberEntity;
-import com.example.login.domain.member.entity.Role;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.login.domain.member.dto.request.MemberSaveRequest;
 import com.example.login.domain.member.dto.request.MemberUpdateRequest;
 import com.example.login.domain.member.dto.response.MemberResponse;
+import com.example.login.domain.member.entity.MemberEntity;
+import com.example.login.domain.member.entity.Role;
 import com.example.login.domain.member.repository.MemberRepository;
+import com.example.login.global.config.properties.SecurityProperties;
+import com.example.login.global.exception.BaseException;
+import com.example.login.global.response.ErrorCode;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true) // 기본적으로 읽기 전용
 public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final SecurityProperties securityProperties;
 
 
+    @Transactional // 쓰기 작업
     public void save(MemberSaveRequest req) {
         boolean exists = memberRepository.findByMemberEmail(req.getMemberEmail()).isPresent();
         if (exists) {
@@ -69,6 +73,7 @@ public class MemberService {
                 .orElseThrow(() -> memberNotFound());
     }
 
+    @Transactional // 쓰기 작업
     public void update(MemberUpdateRequest req) {
         MemberEntity entity = memberRepository.findById(req.getId())
                 .orElseThrow(() -> memberNotFound());
@@ -79,6 +84,7 @@ public class MemberService {
         memberRepository.save(entity);
     }
 
+    @Transactional // 쓰기 작업
     public void deleteById(Long id) {
         if (!memberRepository.existsById(id)) {
             throw memberNotFound();

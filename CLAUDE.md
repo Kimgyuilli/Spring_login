@@ -59,10 +59,12 @@ docker build -t spring-app .
 - **Redis-backed token storage** for refresh tokens and blacklisting
 - **Role-based authorization** (USER, ADMIN, GUEST)
 
-#### Security Filters
-- `LoginFilter`: Handles JWT token issuance on login
-- `JwtAuthenticationFilter`: Validates tokens and sets security context
-- `BlacklistService`: Manages invalidated tokens in Redis
+#### Security Features
+- **JWT Filters**: `LoginFilter` (token issuance), `JwtAuthenticationFilter` (validation)
+- **Rate Limiting**: `RateLimitInterceptor` protects login endpoints (5 requests/minute per IP)
+- **Token Blacklisting**: `BlacklistService` manages invalidated tokens in Redis
+- **OAuth2 Integration**: Strategy pattern for multiple social providers
+- **Security Headers**: CORS configuration with environment-based settings
 
 #### Domain Organization
 ```
@@ -73,12 +75,15 @@ src/main/java/com/example/login/
 │   └── Home/           # Home controller
 ├── global/
 │   ├── jwt/            # JWT utilities and services
-│   ├── oauth2/         # OAuth2 handlers and user info
-│   ├── dto/            # Common DTOs (ApiRes)
+│   ├── oauth2/         # OAuth2 handlers, user info, and strategy pattern
+│   ├── dto/            # Common DTOs (CommonApiResponse)
 │   ├── entity/         # Base entities (BaseTimeEntity)
 │   ├── exception/      # Global exception handling
-│   └── response/       # Standardized response types
-└── config/             # Configuration classes
+│   ├── response/       # Standardized response types and error codes
+│   ├── config/         # Security, CORS, Rate Limiting, Swagger configs
+│   ├── interceptor/    # Rate limiting and request interceptors
+│   └── util/           # Utility classes
+└── config/             # Additional configuration classes
 ```
 
 ### Database & Storage
@@ -114,14 +119,21 @@ OAuth2 settings are in `application-oauth.yml` - configure client IDs and secret
 - Naver OAuth2  
 - Kakao OAuth2
 
+**Strategy Pattern**: `SocialLoginStrategyManager` handles provider-specific user info extraction.
+
+**Duplicate Prevention**: System links existing accounts when same email is used across providers.
+
 ## Development Patterns
 
 ### Response Standardization
-All API responses use `ApiRes<T>` wrapper with consistent structure:
-- `isSuccess`: Boolean success indicator
-- `code`: Response code from `SuccessType`/`ErrorType`
+All API responses use `CommonApiResponse<T>` wrapper with consistent structure:
+- `code`: Response code from `SuccessType`/`ErrorType` enums
 - `message`: Human-readable message
-- `result`: Actual data payload
+- `result`: Actual data payload (null for error responses)
+
+**Auto Response Wrapping**: Controllers use `@AutoApiResponse` annotation for automatic response wrapping.
+
+**Error Handling**: Bean validation errors return detailed field-level error information via `failWithDetails()` method.
 
 ### Token Management
 - **Access tokens**: Short-lived (1 hour), sent in Authorization header
@@ -146,3 +158,47 @@ All API responses use `ApiRes<T>` wrapper with consistent structure:
 ### Test Data
 - Default roles: USER (general), ADMIN (privileged), GUEST (OAuth2 temp)
 - Test credentials managed via environment variables
+
+## Security Features
+
+### Rate Limiting
+- **Login endpoints**: Limited to 5 requests per minute per IP
+- **Implementation**: Guava RateLimiter with IP-based keys
+- **Error Response**: HTTP 429 with standardized error message
+
+### OAuth2 Security
+- **Account Linking**: Automatically links social accounts to existing email addresses
+- **Token Management**: Real user data in JWT tokens (no placeholder values)
+- **Error Handling**: Generic error messages to prevent information disclosure
+
+### Input Validation
+- **SQL Injection Prevention**: Explicit @Query annotations for repository methods
+- **JWT Security**: Debug-level logging for sensitive token information
+- **Bean Validation**: Comprehensive field-level validation with detailed error responses
+
+## Swagger Documentation
+
+### Advanced Features
+- **Auto Error Documentation**: `@CustomExceptionDescription` generates error response examples
+- **Success Code Specification**: `@SuccessCode` for specific success responses  
+- **JWT Security**: Automatic documentation of authentication requirements
+- **Grouping**: Controllers organized by functional areas (Auth, Member, User)
+
+### Access
+- **Swagger UI**: Available at `/api-docs`
+- **API Groups**: Organized by controller functionality
+- **Interactive Testing**: Full request/response examples with authentication
+
+## Rate Limiting Implementation
+
+### Current Behavior
+Rate limiting is applied **per IP address + endpoint combination**:
+- **Key Format**: `IP:endpoint` (e.g., `192.168.1.100:/member/login`)
+- **Limitation**: 5 requests per minute per IP per endpoint
+- **Scope**: `/member/login` and `/oauth2/` endpoints only
+- **Technology**: Guava RateLimiter with ConcurrentHashMap storage
+
+### Important Notes
+- **Pre-authentication**: IP-based limiting works before user identification
+- **Network Impact**: All users from same IP/network share the rate limit
+- **Alternative**: User ID-based limiting possible for post-authentication endpoints
