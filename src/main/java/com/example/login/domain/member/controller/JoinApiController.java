@@ -1,14 +1,22 @@
 package com.example.login.domain.member.controller;
 
-import com.example.login.global.dto.CommonApiResponse;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.login.domain.member.dto.request.MemberSaveRequest;
+import com.example.login.domain.member.service.MemberService;
 import com.example.login.global.exception.BaseException;
 import com.example.login.global.response.AutoApiResponse;
 import com.example.login.global.response.ErrorCode;
 import com.example.login.global.response.MemberSuccessCode;
+import com.example.login.global.response.SuccessCode;
 import com.example.login.global.swagger.CustomExceptionDescription;
 import com.example.login.global.swagger.SwaggerResponseDescription;
-import com.example.login.domain.member.dto.request.MemberSaveRequest;
-import com.example.login.domain.member.service.MemberService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,8 +24,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/join")
@@ -40,6 +46,7 @@ public class JoinApiController {
     })
     @PostMapping
     @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_JOIN_ERROR)
+    @SuccessCode(MemberSuccessCode.MEMBER_CREATED)
     public void join(@RequestBody @Valid MemberSaveRequest req) {
         memberService.save(req);
     }
@@ -55,6 +62,7 @@ public class JoinApiController {
     })
     @GetMapping("/email-check")
     @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
+    @SuccessCode(MemberSuccessCode.EMAIL_CHECK_OK)
     public void emailCheck(@RequestParam String memberEmail) {
         boolean isAvailable = memberService.isEmailAvailable(memberEmail);
         if (!isAvailable) {

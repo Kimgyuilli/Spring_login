@@ -1,7 +1,5 @@
 package com.example.login.global.response;
 
-import com.example.login.global.dto.CommonApiResponse;
-import com.example.login.global.response.MemberSuccessCode;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -9,6 +7,8 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+
+import com.example.login.global.dto.CommonApiResponse;
 
 /**
  * API 응답을 자동으로 CommonApiResponse로 감싸주는 Advice
@@ -31,10 +31,16 @@ public class ApiResponseAdvice implements ResponseBodyAdvice<Object> {
             return body;
         }
 
+        // @SuccessCode 어노테이션이 있으면 지정된 성공 코드 사용
+        SuccessCode successCodeAnnotation = returnType.getMethodAnnotation(SuccessCode.class);
+        MemberSuccessCode successCode = successCodeAnnotation != null 
+            ? successCodeAnnotation.value() 
+            : MemberSuccessCode.SUCCESS;
+
         if (body == null || returnType.getParameterType() == Void.class) {
-            return CommonApiResponse.success(MemberSuccessCode.SUCCESS);
+            return CommonApiResponse.success(successCode);
         }
 
-        return CommonApiResponse.success(MemberSuccessCode.SUCCESS, body);
+        return CommonApiResponse.success(successCode, body);
     }
 }

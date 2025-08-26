@@ -1,11 +1,17 @@
 package com.example.login.domain.auth.controller;
 
-import com.example.login.global.dto.CommonApiResponse;
-import com.example.login.global.response.MemberSuccessCode;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.login.domain.auth.dto.response.TokenResponse;
 import com.example.login.domain.auth.service.AuthenticationService;
+import com.example.login.global.response.AutoApiResponse;
+import com.example.login.global.response.MemberSuccessCode;
+import com.example.login.global.response.SuccessCode;
 import com.example.login.global.swagger.CustomExceptionDescription;
 import com.example.login.global.swagger.SwaggerResponseDescription;
-import com.example.login.domain.auth.dto.response.TokenResponse;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -13,14 +19,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@AutoApiResponse
 @Tag(name = "인증 API", description = "JWT 토큰 관리")
 public class AuthApiController {
 
@@ -33,12 +36,12 @@ public class AuthApiController {
     })
     @PostMapping("/token/refresh")
     @CustomExceptionDescription(SwaggerResponseDescription.AUTH_ERROR)
-    public ResponseEntity<CommonApiResponse<TokenResponse>> refreshAccessToken(
+    @SuccessCode(MemberSuccessCode.TOKEN_REISSUE_SUCCESS)
+    public TokenResponse refreshAccessToken(
             HttpServletRequest request, 
             HttpServletResponse response) {
         
-        TokenResponse tokenResponse = authenticationService.refreshAccessToken(request, response);
-        return ResponseEntity.ok(CommonApiResponse.success(MemberSuccessCode.TOKEN_REISSUE_SUCCESS, tokenResponse));
+        return authenticationService.refreshAccessToken(request, response);
     }
 
     @Operation(summary = "Access + Refresh Token 모두 재발급")
@@ -48,12 +51,12 @@ public class AuthApiController {
     })
     @PostMapping("/token/refresh/full")
     @CustomExceptionDescription(SwaggerResponseDescription.AUTH_ERROR)
-    public ResponseEntity<CommonApiResponse<TokenResponse>> refreshAllTokens(
+    @SuccessCode(MemberSuccessCode.TOKEN_REISSUE_FULL_SUCCESS)
+    public TokenResponse refreshAllTokens(
             HttpServletRequest request, 
             HttpServletResponse response) {
         
-        TokenResponse tokenResponse = authenticationService.refreshAllTokens(request, response);
-        return ResponseEntity.ok(CommonApiResponse.success(MemberSuccessCode.TOKEN_REISSUE_FULL_SUCCESS, tokenResponse));
+        return authenticationService.refreshAllTokens(request, response);
     }
 
     @Operation(summary = "로그아웃")
@@ -62,11 +65,11 @@ public class AuthApiController {
     })
     @PostMapping("/logout")
     @CustomExceptionDescription(SwaggerResponseDescription.AUTH_ERROR)
-    public ResponseEntity<CommonApiResponse<Void>> logout(
+    @SuccessCode(MemberSuccessCode.LOGOUT_SUCCESS)
+    public void logout(
             HttpServletRequest request, 
             HttpServletResponse response) {
         
         authenticationService.logout(request, response);
-        return ResponseEntity.ok(CommonApiResponse.success(MemberSuccessCode.LOGOUT_SUCCESS));
     }
 }

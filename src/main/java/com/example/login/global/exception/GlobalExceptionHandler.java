@@ -1,5 +1,6 @@
 package com.example.login.global.exception;
 
+import com.example.login.global.advice.ParameterData;
 import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.response.ErrorCode;
 import com.example.login.global.response.ErrorType;
@@ -8,8 +9,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestControllerAdvice
@@ -33,26 +38,31 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .body(CommonApiResponse.fail(new ErrorType() {
-                    @Override
-                    public String getCode() {
-                        return "E400";
-                    }
-
-                    @Override
-                    public String getMessage() {
-                        return "입력값이 잘못되었습니다.";
-                    }
-
-                    @Override
-                    public int getStatus() {
-                        return HttpStatus.BAD_REQUEST.value();
-                    }
-                }));
+                .status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
+                .body(CommonApiResponse.fail(ErrorCode.INVALID_INPUT_VALUE));
     }
 
-    // 3. 회원 없음 예외
+    // 3. Bean Validation 실패 예외
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException e) {
+        List<ParameterData> errors = e.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> new ParameterData(
+                        error.getField(),
+                        error.getRejectedValue() != null ? error.getRejectedValue().toString() : "null",
+                        error.getDefaultMessage()
+                ))
+                .collect(Collectors.toList());
+
+        log.warn("Validation failed: {}", errors);
+        
+        return ResponseEntity
+                .status(ErrorCode.PARAMETER_VALIDATION_ERROR.getStatus())
+                .body(CommonApiResponse.failWithDetails(ErrorCode.PARAMETER_VALIDATION_ERROR, errors));
+    }
+
+    // 4. 회원 없음 예외
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<?> handleUsernameNotFound(UsernameNotFoundException e) {
         return ResponseEntity

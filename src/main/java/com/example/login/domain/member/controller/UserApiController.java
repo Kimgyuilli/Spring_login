@@ -1,24 +1,31 @@
 package com.example.login.domain.member.controller;
 
-import com.example.login.global.dto.CommonApiResponse;
-import com.example.login.global.response.AutoApiResponse;
-import com.example.login.global.response.MemberSuccessCode;
-import com.example.login.domain.member.dto.request.MemberUpdateRequest;
-import com.example.login.global.swagger.CustomExceptionDescription;
-import com.example.login.global.swagger.SwaggerResponseDescription;
+import java.util.List;
+
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.login.domain.member.dto.request.MemberUpdateRequest;
 import com.example.login.domain.member.dto.response.MemberResponse;
 import com.example.login.domain.member.service.MemberService;
+import com.example.login.global.response.AutoApiResponse;
+import com.example.login.global.response.MemberSuccessCode;
+import com.example.login.global.response.SuccessCode;
+import com.example.login.global.swagger.CustomExceptionDescription;
+import com.example.login.global.swagger.SwaggerResponseDescription;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -38,6 +45,7 @@ public class UserApiController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
+    @SuccessCode(MemberSuccessCode.MEMBER_VIEW)
     public List<MemberResponse> findAll() {
         return memberService.findAll();
     }
@@ -54,6 +62,7 @@ public class UserApiController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
     @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
+    @SuccessCode(MemberSuccessCode.MEMBER_VIEW)
     public MemberResponse findById(@PathVariable Long id) {
         return memberService.findById(id);
     }
@@ -72,6 +81,7 @@ public class UserApiController {
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('USER')")
     @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
+    @SuccessCode(MemberSuccessCode.MEMBER_UPDATED)
     public void update(@PathVariable Long id, @RequestBody MemberUpdateRequest req) {
         req.setId(id);
         memberService.update(req);
@@ -89,6 +99,7 @@ public class UserApiController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
+    @SuccessCode(MemberSuccessCode.MEMBER_DELETED)
     public void delete(@PathVariable Long id) {
         memberService.deleteById(id);
     }

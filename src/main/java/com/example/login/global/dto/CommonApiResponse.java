@@ -31,6 +31,11 @@ public class CommonApiResponse<T> {
     public static CommonApiResponse<Void> fail(ErrorType errorType) {
         return new CommonApiResponse<>(errorType.getCode(), errorType.getMessage(), null);
     }
+    
+    // 상세 정보가 있는 실패 응답
+    public static <T> CommonApiResponse<T> failWithDetails(ErrorType errorType, T details) {
+        return new CommonApiResponse<>(errorType.getCode(), errorType.getMessage(), details);
+    }
 
     // 생성자
     private CommonApiResponse(String code, String message, T data) {
