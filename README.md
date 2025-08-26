@@ -220,6 +220,8 @@ src/main/java/com/example/login/
 ```
 src/main/resources/
 ├── application.yml              # 메인 설정 파일
+├── application-dev.yml          # 개발 환경 설정
+├── application-prod.yml         # 운영 환경 설정
 └── application-oauth.yml        # OAuth2 설정
 ```
 
@@ -766,18 +768,6 @@ CORS_ALLOWED_ORIGINS=https://yourdomain.com
 - [ ] OAuth2 리다이렉션 URL 등록
 - [ ] Rate Limiting 임계값 조정
 - [ ] 모니터링 및 알림 설정
-
-### **Docker 운영**
-```bash
-# 운영환경 실행
-docker-compose -f docker-compose.prod.yml up --build -d
-
-# 로그 확인
-docker-compose logs -f spring-app
-
-# 헬스 체크
-curl http://localhost:8080/actuator/health
-```
 
 ---
 
