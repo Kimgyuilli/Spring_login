@@ -101,31 +101,56 @@ src/main/java/com/example/login/
 │
 ├── domain/                               # 도메인 계층
 │   ├── auth/                            # 인증 도메인
-│   │   ├── controller/                  # 인증 관련 컨트롤러
+│   │   ├── controller/                  # 인증 API 컨트롤러
+│   │   │   └── AuthApiController.java   # 토큰 관리, 로그아웃
 │   │   ├── service/                     # 인증 도메인 서비스
-│   │   ├── entity/                      # 인증 엔티티 (RefreshToken)
+│   │   │   ├── AuthenticationService.java
+│   │   │   ├── TokenValidator.java
+│   │   │   ├── RefreshTokenService.java
+│   │   │   └── BlacklistService.java
+│   │   ├── entity/                      # 인증 엔티티
+│   │   │   └── RefreshToken.java
 │   │   ├── repository/                  # 데이터 접근 계층
+│   │   │   └── RefreshTokenRepository.java
 │   │   └── dto/                         # 데이터 전송 객체
+│   │       └── response/
+│   │           └── TokenResponse.java
 │   │
-│   ├── member/                          # 회원 도메인
-│   │   ├── controller/                  # 회원 관련 컨트롤러
-│   │   ├── service/                     # 회원 도메인 서비스
-│   │   ├── entity/                      # 회원 엔티티
-│   │   ├── repository/                  # 회원 데이터 접근
-│   │   ├── security/                    # 회원별 인증 구현
-│   │   └── dto/                         # 요청/응답 DTO
-│   │
-│   └── Home/                            # 홈 도메인
-│       └── controller/                  # 홈 컨트롤러
+│   └── member/                          # 회원 도메인
+│       ├── controller/                  # 회원 관련 컨트롤러
+│       │   ├── JoinApiController.java   # 회원가입, 이메일 중복확인
+│       │   └── UserApiController.java   # 회원 CRUD 관리
+│       ├── service/                     # 회원 도메인 서비스
+│       │   └── MemberService.java
+│       ├── entity/                      # 회원 엔티티
+│       │   ├── MemberEntity.java
+│       │   └── Role.java
+│       ├── repository/                  # 회원 데이터 접근
+│       │   └── MemberRepository.java
+│       ├── security/                    # 회원별 인증 구현
+│       │   ├── CustomUserDetails.java
+│       │   └── CustomUserDetailsService.java
+│       └── dto/                         # 요청/응답 DTO
+│           ├── request/
+│           │   ├── MemberSaveRequest.java
+│           │   ├── MemberLoginRequest.java
+│           │   └── MemberUpdateRequest.java
+│           └── response/
+│               ├── MemberResponse.java
+│               └── MemberLoginResponse.java
 │
 ├── global/                              # 전역 공통기능
 │   ├── config/                          # 설정 클래스들
-│   │   ├── SecurityConfig.java          # 보안 전체 설정
+│   │   ├── SecurityConfig.java          # 메인 보안 설정
 │   │   ├── JwtSecurityConfig.java       # JWT 관련 설정
 │   │   ├── OAuth2SecurityConfig.java    # OAuth2 설정
 │   │   ├── SwaggerConfig.java           # API 문서화 설정
 │   │   ├── RateLimitConfig.java         # 요청 제한 설정
-│   │   └── properties/                  # 설정 프로퍼티 클래스들
+│   │   ├── CorsConfig.java              # CORS 설정
+│   │   ├── RedisConfig.java             # Redis 설정
+│   │   ├── WebConfig.java               # 웹 설정
+│   │   └── properties/                  # 설정 프로퍼티
+│   │       └── SecurityProperties.java
 │   │
 │   ├── jwt/                             # JWT 관련 유틸리티
 │   │   ├── JWTUtil.java                 # JWT 생성/검증 유틸
@@ -135,24 +160,57 @@ src/main/java/com/example/login/
 │   │
 │   ├── oauth2/                          # OAuth2 소셜 로그인
 │   │   ├── handler/                     # 성공/실패 핸들러
+│   │   │   ├── OAuth2LoginSuccessHandler.java
+│   │   │   └── OAuth2LoginFailureHandler.java
 │   │   ├── service/                     # OAuth2 서비스
+│   │   │   ├── CustomOAuth2UserService.java
+│   │   │   └── OAuth2TokenService.java
 │   │   ├── strategy/                    # 제공업체 전략패턴
+│   │   │   ├── SocialLoginStrategy.java
+│   │   │   ├── SocialLoginStrategyManager.java
+│   │   │   ├── GoogleLoginStrategy.java
+│   │   │   ├── NaverLoginStrategy.java
+│   │   │   └── KakaoLoginStrategy.java
 │   │   ├── userInfo/                    # 제공업체 사용자정보
+│   │   │   ├── OAuth2UserInfo.java
+│   │   │   ├── GoogleOAuth2UserInfo.java
+│   │   │   ├── NaverOAuth2UserInfo.java
+│   │   │   └── KakaoOAuth2UserInfo.java
+│   │   ├── user/                        # OAuth2 사용자
+│   │   │   └── CustomOAuth2User.java
+│   │   ├── entity/                      # 소셜 타입 엔티티
+│   │   │   └── SocialType.java
 │   │   └── dto/                         # OAuth2 관련 DTO
+│   │       ├── OAuthAttributes.java
+│   │       └── OAuthLoginResponse.java
 │   │
 │   ├── exception/                       # 예외 처리
 │   │   ├── GlobalExceptionHandler.java  # 글로벌 예외 처리
 │   │   └── BaseException.java           # 기본 예외 클래스
 │   │
 │   ├── response/                        # 응답 규격화
-│   │   ├── CommonApiResponse.java       # 통합 응답 래퍼
-│   │   ├── ErrorCode.java              # 실패 코드 열거형
-│   │   ├── MemberSuccessCode.java      # 성공 코드 열거형
-│   │   └── AutoApiResponse.java        # 자동 응답 래핑 어노테이션
+│   │   ├── ApiResponseAdvice.java       # 응답 래핑 AOP
+│   │   ├── AutoApiResponse.java         # 자동 응답 래핑 어노테이션
+│   │   ├── ErrorCode.java               # 에러 코드 열거형
+│   │   ├── ErrorType.java               # 에러 타입 인터페이스
+│   │   ├── ErrorInfo.java               # 에러 정보 클래스
+│   │   ├── MemberSuccessCode.java       # 성공 코드 열거형
+│   │   ├── SuccessCode.java             # 성공 코드 어노테이션
+│   │   └── SuccessType.java             # 성공 타입 인터페이스
 │   │
 │   ├── swagger/                         # Swagger 확장
 │   │   ├── CustomExceptionDescription.java  # 예외 문서화
-│   │   └── SwaggerResponseDescription.java  # 응답 설명
+│   │   ├── SwaggerResponseDescription.java  # 응답 설명
+│   │   └── ExampleHolder.java           # 예제 홀더
+│   │
+│   ├── entity/                          # 전역 엔티티
+│   │   └── BaseTimeEntity.java          # 생성/수정 시간 공통 엔티티
+│   │
+│   ├── dto/                             # 공통 DTO
+│   │   └── CommonApiResponse.java       # 통합 응답 래퍼
+│   │
+│   ├── advice/                          # AOP 어드바이스
+│   │   └── ParameterData.java           # 파라미터 데이터
 │   │
 │   └── interceptor/                     # 전역 인터셉터
 │       └── RateLimitInterceptor.java    # 요청 제한 인터셉터
@@ -162,9 +220,7 @@ src/main/java/com/example/login/
 ```
 src/main/resources/
 ├── application.yml              # 메인 설정 파일
-├── application-oauth.yml        # OAuth2 설정
-├── application-dev.yml          # 개발환경 설정
-└── application-prod.yml         # 운영환경 설정
+└── application-oauth.yml        # OAuth2 설정
 ```
 
 ---
@@ -240,9 +296,9 @@ Roles:
 
 ```json
 {
-  "code": "M001",
-  "message": "회원 등록 성공",
-  "result": {
+  "code": "S205",
+  "message": "회원가입 성공",
+  "data": {
     "id": 1,
     "memberEmail": "user@example.com",
     "memberName": "사용자",
@@ -254,51 +310,58 @@ Roles:
 ### **응답 데이터 명세**
 ```yaml
 CommonApiResponse<T>:
-  code:     # 응답 코드 (성공: 200대, 실패: 400-500대)
+  code:     # 응답 코드
     type: String
-    pattern: "[MAEHS][0-9]{3}"
-    description: M(Member), A(Auth), E(Error), H(Home), S(System)
+    pattern: "S[0-9]{3}" (성공) | "E[0-9]{3}" (실패)
+    description: S(Success) | E(Error)
   
   message:  # 사용자용 결과 메시지
     type: String
     description: 클라이언트용 표시가능 메시지
   
-  result:   # 실제 데이터 (성공시), null (실패시)
+  data:     # 실제 데이터 (성공시), null 또는 상세정보 (실패시)
     type: Generic<T>
-    description: API별 응답 데이터
+    description: API별 응답 데이터 또는 에러 상세정보
 ```
 
 ### **성공 응답 코드**
 ```yaml
-Member (M):
-  M001: "회원 등록 성공"           (201)
-  M002: "이메일 사용가능 확인"         (200)
-  M003: "중복 이메일 확인"      (409)
-  M004: "로그인 성공"            (200)
-  M005: "토큰 재발급 성공"        (200)
-  M006: "로그아웃 성공"          (200)
-  M007: "회원 정보 조회 성공"      (200)
-  M008: "회원 목록 조회 성공"      (200)
-  M009: "회원 정보 수정 성공"      (200)
-  M010: "회원 삭제 성공"         (200)
-  M011: "소셜 로그인 성공"        (200)
-
-Auth (A):
-  A001: "토큰 검증 성공"         (200)
-  A002: "로그아웃 처리 완료"      (200)
+MemberSuccessCode:
+  S200: "성공"
+  S201: "로그인 성공"
+  S201: "로그아웃 성공"  
+  S202: "Access 토큰 재발급 성공"
+  S203: "Access/Refresh 토큰 재발급 성공"
+  S204: "이메일 사용 가능"
+  S205: "회원가입 성공"
+  S206: "회원 정보 수정 성공"
+  S207: "회원 삭제 성공"
+  S208: "회원 정보 조회 성공"
+  S209: "소셜 로그인 성공"
 ```
 
 ### **자동 응답 래핑**
 ```java
-// 컨트롤러에 @AutoApiResponse 적용 → 자동 래핑
+// 컨트롤러에 @AutoApiResponse 적용 → ApiResponseAdvice가 자동 래핑
 @RestController
 @AutoApiResponse  // 모든 응답을 CommonApiResponse로 래핑
-public class MemberController {
+@RequestMapping("/api/join")
+public class JoinApiController {
     
     @PostMapping
-    public MemberResponse save(@Valid @RequestBody MemberSaveRequest req) {
-        // MemberResponse 반환 → CommonApiResponse<MemberResponse>로 자동 변환
-        return memberService.save(req);
+    @SuccessCode(MemberSuccessCode.MEMBER_CREATED)  // 특정 성공 코드 지정
+    public void join(@Valid @RequestBody MemberSaveRequest req) {
+        memberService.save(req);
+        // void 반환 → CommonApiResponse.success(MEMBER_CREATED)로 자동 변환
+    }
+    
+    @GetMapping("/email-check")
+    @SuccessCode(MemberSuccessCode.EMAIL_CHECK_OK)
+    public void emailCheck(@RequestParam String memberEmail) {
+        // boolean 결과를 예외로 처리, 성공시 자동 래핑
+        if (!memberService.isEmailAvailable(memberEmail)) {
+            throw new BaseException(ErrorCode.DUPLICATE_EMAIL);
+        }
     }
 }
 ```
@@ -311,41 +374,48 @@ public class MemberController {
 ```
 Exception Hierarchy:
 ├── RuntimeException
-    └── BaseException                    # 기본 예외 클래스
-        ├── BusinessLogicException       # 도메인 로직 예외
-        ├── AuthenticationException      # 인증 예외  
-        └── ValidationException          # 검증 예외
+    ├── BaseException                    # 커스텀 기본 예외 클래스
+    ├── UsernameNotFoundException        # Spring Security 예외
+    ├── MethodArgumentNotValidException  # Bean Validation 예외
+    └── InvalidFormatException          # JSON 변환 예외 (Enum 등)
+
+Response Types:
+├── ErrorType                           # 에러 타입 인터페이스
+    └── ErrorCode                       # 에러 코드 열거형 (구현체)
+└── SuccessType                         # 성공 타입 인터페이스  
+    └── MemberSuccessCode               # 성공 코드 열거형 (구현체)
 ```
 
-### **실패 코드 체계**
+### **실패 코드 체계 (ErrorCode)**
 ```yaml
-Error Codes (HTTP Status 기준):
+ErrorCode (HTTP Status 기준):
   
   E400 (Bad Request):
-    - INVALID_ROLE: "유효하지 않은 권한(Role)입니다"
-    - TOKEN_MALFORMED: "형식이 잘못된 토큰입니다"  
+    - INVALID_ROLE: "잘못된 역할(Role)입니다"
+    - TOKEN_MALFORMED: "잘못된 형식의 토큰입니다"  
     - INVALID_INPUT_VALUE: "잘못된 입력값입니다"
     - PARAMETER_VALIDATION_ERROR: "파라미터 검증에 실패했습니다"
   
   E401 (Unauthorized):
-    - LOGIN_FAIL: "이메일 또는 비밀번호가 올바르지 않습니다"
+    - LOGIN_FAIL: "이메일 또는 비밀번호가 틀렸습니다"
     - INVALID_TOKEN: "유효하지 않은 토큰입니다"
     - TOKEN_EXPIRED: "만료된 토큰입니다"
     - REFRESH_TOKEN_NOT_FOUND: "리프레시 토큰을 찾을 수 없습니다"
-    - TOKEN_BLACKLISTED: "무효화된 토큰입니다"
-    - OAUTH2_LOGIN_FAILED: "소셜 로그인에 실패했습니다"
+    - ACCESS_TOKEN_REQUIRED: "액세스 토큰이 필요합니다"
+    - TOKEN_BLACKLISTED: "차단된 토큰입니다"
+    - OAUTH2_LOGIN_FAILED: "소셜 로그인에 실패했습니다. 다시 시도해주세요."
   
   E404 (Not Found):
     - MEMBER_NOT_FOUND: "회원을 찾을 수 없습니다"
   
   E409 (Conflict):
-    - DUPLICATE_EMAIL: "중복된 이메일입니다"
+    - DUPLICATE_EMAIL: "이미 가입된 이메일입니다"
   
   E429 (Too Many Requests):
-    - TOO_MANY_REQUESTS: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요"
+    - TOO_MANY_REQUESTS: "너무 많은 요청입니다. 잠시 후 다시 시도해주세요."
   
   E500 (Internal Server Error):
-    - INTERNAL_SERVER_ERROR: "서버 내부 오류가 발생했습니다"
+    - INTERNAL_SERVER_ERROR: "내부 서버 오류가 발생했습니다"
 ```
 
 ### **Bean Validation 실패 응답**
@@ -353,37 +423,48 @@ Error Codes (HTTP Status 기준):
 {
   "code": "E400",
   "message": "파라미터 검증에 실패했습니다",
-  "result": [
+  "data": [
     {
-      "parameter": "memberEmail",
-      "value": "invalid-email",
+      "key": "memberEmail",
+      "value": "invalid-email", 
       "reason": "이메일 형식이 올바르지 않습니다."
     },
     {
-      "parameter": "memberPassword",
-      "value": "",
+      "key": "memberPassword",
+      "value": "null",
       "reason": "비밀번호는 필수입니다."
     }
   ]
 }
 ```
 
-### **글로벌 예외 처리**
+### **글로벌 예외 처리 (GlobalExceptionHandler)**
 ```java
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     
-    // Bean Validation 예외
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException e);
-    
-    // 기본 도메인 예외
+    // 1. 커스텀 예외 처리
     @ExceptionHandler(BaseException.class)
     public ResponseEntity<?> handleBaseException(BaseException e);
     
-    // 기타 예외
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleGenericException(Exception e);
+    // 2. Enum 변환 에러 처리 (Role 등)
+    @ExceptionHandler(InvalidFormatException.class)
+    public ResponseEntity<?> handleInvalidFormat(InvalidFormatException e);
+    
+    // 3. Bean Validation 실패 예외 (ParameterData 리스트로 상세 정보 제공)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException e);
+    
+    // 4. 회원 없음 예외 (Spring Security)
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<?> handleUsernameNotFound(UsernameNotFoundException e);
+}
+
+// ParameterData 구조
+public class ParameterData {
+    private String key;      // 필드명
+    private String value;    // 입력값 (null인 경우 "null" 문자열)
+    private String reason;   // 검증 실패 이유
 }
 ```
 
@@ -392,55 +473,111 @@ public class GlobalExceptionHandler {
 ## 📚 **Swagger 문서화 규격**
 
 ### **자동 문서화 기능**
-- **JWT 보안 스키마**: 자동으로 Authorization 헤더 문서화
-- **예외 응답 생성**: `@CustomExceptionDescription`으로 가능한 에러 응답들 자동생성
-- **성공 코드 명시**: `@SuccessCode`를 통한 성공 응답 명세
-- **API 그룹화**: Controller별 태그 그룹 생성
+- **JWT Bearer 보안 스키마**: `@PreAuthorize` 어노테이션 감지시 자동으로 JWT 인증 요구사항 추가
+- **예외 응답 자동생성**: `@CustomExceptionDescription`으로 HTTP 상태코드별 에러 응답 예제 자동생성
+- **성공 코드 명시**: `@SuccessCode`를 통한 특정 성공 응답 코드 지정
+- **Bean Validation 에러**: `PARAMETER_VALIDATION_ERROR` 시 ParameterData 배열 예제 자동생성
+- **API 그룹화**: Controller의 `@Tag` 어노테이션을 통한 기능별 그룹화
 
-### **문서화 어노테이션**
+### **문서화 어노테이션 예시**
 ```java
 @RestController
-@RequestMapping("/api/users")
-@Tag(name = "사용자 관리 API", description = "사용자 CRUD 및 관련 기능")
-public class UserController {
+@RequestMapping("/api/users")  
+@AutoApiResponse
+@Tag(name = "회원 관리 API", description = "사용자 조회, 수정, 삭제 관련 API")
+public class UserApiController {
     
     @Operation(
-        summary = "사용자 정보 조회",
-        description = "현재 로그인한 사용자의 정보를 조회합니다."
+        summary = "전체 사용자 목록 조회",
+        description = "가입된 모든 사용자의 정보를 조회합니다."
     )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "조회 성공"),
-        @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content),
-        @ApiResponse(responseCode = "403", description = "권한 부족", content = @Content)
-    })
-    @CustomExceptionDescription({
-        ErrorCode.INVALID_TOKEN,
-        ErrorCode.TOKEN_EXPIRED,
-        ErrorCode.ACCESS_DENIED
-    })
-    @SuccessCode(MemberSuccessCode.MEMBER_LIST_FOUND)
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
+    @SuccessCode(MemberSuccessCode.MEMBER_VIEW)
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")  // JWT 보안 스키마 자동 추가
     public List<MemberResponse> findAll() { ... }
+    
+    @Operation(summary = "사용자 정보 수정")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "수정 성공"),
+        @ApiResponse(responseCode = "400", description = "입력값 유효성 실패", content = @Content),
+        @ApiResponse(responseCode = "404", description = "해당 사용자가 존재하지 않음", content = @Content)
+    })
+    @CustomExceptionDescription(SwaggerResponseDescription.MEMBER_ERROR)
+    @SuccessCode(MemberSuccessCode.MEMBER_UPDATED)
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
+    public void update(@PathVariable Long id, @RequestBody MemberUpdateRequest req) { ... }
 }
 ```
 
-### **자동 생성되는 문서 요소**
-```yaml
-자동 문서화 항목:
-  - JWT Bearer Token 보안 스키마
-  - 컨트롤러별 API 그룹화  
-  - @PreAuthorize 기반 권한 요구사항
-  - CommonApiResponse 기반 응답 스키마
-  - Bean Validation 기반 요청 검증
-  - 커스텀 에러 응답 예시
-  - 성공/실패 응답 코드 매핑
+### **SwaggerResponseDescription 에러 그룹**
+```java
+public enum SwaggerResponseDescription {
+    
+    MEMBER_ERROR(Set.of(
+        ErrorCode.MEMBER_NOT_FOUND,           // E404: "회원을 찾을 수 없습니다"
+        ErrorCode.DUPLICATE_EMAIL             // E409: "이미 가입된 이메일입니다"
+    )),
+    
+    MEMBER_JOIN_ERROR(Set.of(
+        ErrorCode.DUPLICATE_EMAIL,            // E409: "이미 가입된 이메일입니다"
+        ErrorCode.PARAMETER_VALIDATION_ERROR, // E400: "파라미터 검증에 실패했습니다"
+        ErrorCode.INVALID_INPUT_VALUE         // E400: "잘못된 입력값입니다"
+    )),
+    
+    AUTH_ERROR(Set.of(
+        ErrorCode.INVALID_TOKEN,              // E401: "유효하지 않은 토큰입니다"
+        ErrorCode.REFRESH_TOKEN_NOT_FOUND,    // E401: "리프레시 토큰을 찾을 수 없습니다"
+        ErrorCode.LOGIN_FAIL                  // E401: "이메일 또는 비밀번호가 틀렸습니다"
+    )),
+    
+    COMMON_ERROR(Set.of(
+        ErrorCode.INTERNAL_SERVER_ERROR,      // E500: "내부 서버 오류가 발생했습니다"
+        ErrorCode.INVALID_INPUT_VALUE         // E400: "잘못된 입력값입니다"
+    ))
+}
 ```
 
-### **Swagger UI 접근**
+### **자동 생성 문서 요소**
+```yaml
+OperationCustomizer 기능:
+  - JWT 보안 스키마: @PreAuthorize 감지시 자동으로 "JWT" 보안 요구사항 추가
+  - 에러 응답 예제: @CustomExceptionDescription의 SwaggerResponseDescription에 정의된 에러코드들을 HTTP 상태코드별로 그룹화하여 응답 예제 자동생성
+  - Bean Validation 예제: PARAMETER_VALIDATION_ERROR 시 ParameterData 구조로 상세한 검증 실패 정보 제공
+  - HTTP 상태코드별 분류: 동일한 상태코드의 에러들을 하나의 응답으로 묶어서 여러 예제로 표시
+
+SwaggerConfig 설정:
+  - OpenAPIDefinition: API 정보, 연락처, 라이선스 정보
+  - SecurityScheme: JWT Bearer 토큰 방식 (Authorization 헤더)
+  - 개발서버: http://localhost:8080
+  - ExampleHolder: 에러 응답 예제를 담는 래퍼 클래스
 ```
-개발환경: http://localhost:8080/api-docs
-운영환경: https://api.yourdomain.com/api-docs
+
+### **Swagger UI 접근 및 API 정보**
+```yaml
+접속 URL:
+  개발환경: http://localhost:8080/api-docs
+  
+API 문서 정보:
+  title: "Spring Login API 문서"
+  description: "JWT 인증 기반 로그인 시스템의 REST API 문서입니다."
+  version: "v1.0.0"
+  contact:
+    name: "김규일"
+    email: "rlarbdlf222@gmail.com"
+    url: "https://github.com/Kimgyuilli"
+  license:
+    name: "MIT License"
+    url: "https://opensource.org/licenses/MIT"
+
+보안 스키마:
+  name: "JWT"
+  type: "HTTP Bearer"
+  scheme: "bearer"
+  bearerFormat: "JWT"
+  location: "Authorization Header"
 ```
 
 ---
@@ -501,19 +638,23 @@ public class UserController {
 ### **테스트 시나리오**
 ```
 1. 기본 인증 플로우:
-   POST /api/join → POST /api/auth/login → GET /api/users → POST /api/auth/logout
+   POST /api/join → 로그인 (Security Filter) → GET /api/users → POST /api/auth/logout
 
 2. 토큰 갱신 플로우:
-   POST /api/auth/login → POST /api/auth/token/refresh → GET /api/users
+   로그인 → POST /api/auth/token/refresh → GET /api/users
+   로그인 → POST /api/auth/token/refresh/full → GET /api/users
 
-3. 에러 케이스:
-   - 잘못된 이메일 형식 요청
-   - 중복 로그인 시도
+3. 회원 관리 플로우 (ADMIN 권한):
+   GET /api/users → GET /api/users/{id} → PUT /api/users/{id} → DELETE /api/users/{id}
+
+4. 에러 케이스:
+   - 잘못된 이메일 형식 요청 (POST /api/join)
+   - 중복 이메일 회원가입 시도
    - 만료된 토큰 사용
-   - 권한 부족한 API 호출
+   - 권한 부족한 API 호출 (USER → ADMIN 기능)
 
-4. Rate Limiting 테스트:
-   - 로그인 엔드포인트 연속 호출 (최대 5회 제한)
+5. Rate Limiting 테스트:
+   - 로그인 엔드포인트 연속 호출 (최대 5회/분 제한)
 ```
 
 ### **핵심 테스트 시나리오**
@@ -530,7 +671,7 @@ POST /api/join
 
 #### **로그인** 
 ```http
-POST /api/auth/login
+POST /login  # Spring Security Filter Chain
 {
   "memberEmail": "test@example.com",
   "memberPassword": "password123"
@@ -546,8 +687,41 @@ Authorization: Bearer {accessToken}
 
 #### **토큰 갱신**
 ```http
+# Access Token만 갱신
 POST /api/auth/token/refresh
 Cookie: refresh={refreshToken}
+
+# Access + Refresh Token 모두 갱신
+POST /api/auth/token/refresh/full
+Cookie: refresh={refreshToken}
+```
+
+#### **회원 관리 (ADMIN 권한 필요)**
+```http
+# 전체 회원 목록 조회
+GET /api/users
+Authorization: Bearer {accessToken}
+
+# 특정 회원 조회
+GET /api/users/{id}
+Authorization: Bearer {accessToken}
+
+# 회원 정보 수정
+PUT /api/users/{id}
+Authorization: Bearer {accessToken}
+{
+  "memberName": "새이름",
+  "memberEmail": "new@example.com"
+}
+
+# 회원 삭제
+DELETE /api/users/{id}
+Authorization: Bearer {accessToken}
+```
+
+#### **이메일 중복 확인**
+```http
+GET /api/join/email-check?memberEmail=test@example.com
 ```
 
 ---
