@@ -18,10 +18,18 @@ public class OAuth2TokenService {
     private final JWTUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
 
-    public String createGuestAccessToken(String email) {
+    public String createGuestAccessToken(String memberId, String email) {
         return jwtUtil.createAccessToken(
-                "",         // GUEST는 임시 ID 없음
+                memberId,   // 실제 멤버 ID 사용
                 Role.GUEST, // 임시 역할
+                email
+        );
+    }
+
+    public String createUserAccessToken(String memberId, String email) {
+        return jwtUtil.createAccessToken(
+                memberId,   // 실제 멤버 ID 사용
+                Role.USER,  // 일반 사용자 역할
                 email
         );
     }
@@ -31,11 +39,19 @@ public class OAuth2TokenService {
         log.info("OAuth2 AccessToken 전송 완료");
     }
 
-    public String createRefreshTokenForUser() {
+    public String createRefreshTokenForUser(String memberId, String email) {
         return jwtUtil.createRefreshToken(
-                "",         // 빈 ID (추후 확장 가능)
+                memberId,   // 실제 멤버 ID 사용
                 Role.USER,  // 기본 사용자 역할
-                ""          // 빈 이메일 (추후 확장 가능)
+                email       // 실제 이메일 사용
+        );
+    }
+
+    public String createGuestRefreshToken(String memberId, String email) {
+        return jwtUtil.createRefreshToken(
+                memberId,   // 실제 멤버 ID 사용
+                Role.GUEST, // 임시 역할
+                email       // 실제 이메일 사용
         );
     }
 

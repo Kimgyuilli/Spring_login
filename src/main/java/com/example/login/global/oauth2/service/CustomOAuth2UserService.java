@@ -50,6 +50,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 Collections.singleton(new SimpleGrantedAuthority(user.getRole().getKey())),
                 attributes,
                 extractAttributes.getNameAttributeKey(),
+                String.valueOf(user.getId()),
                 user.getMemberEmail(),
                 user.getRole(),
                 user.getSocialType()
@@ -58,8 +59,35 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
 
     private MemberEntity findOrCreateUser(OAuthAttributes attributes, SocialType socialType) {
-        return userRepository.findBySocialTypeAndSocialId(socialType, attributes.getOauth2UserInfo().getId())
-                .orElseGet(() -> saveUser(attributes, socialType));
+        String socialId = attributes.getOauth2UserInfo().getId();
+        String email = attributes.getOauth2UserInfo().getEmail();
+        
+        // 1. 먼저 같은 소셜 타입과 소셜 ID로 찾기
+        return userRepository.findBySocialTypeAndSocialId(socialType, socialId)
+                .orElseGet(() -> {
+                    // 2. 소셜 ID로 찾지 못한 경우, 이메일로 기존 사용자 확인
+                    return userRepository.findByMemberEmail(email)
+                            .map(existingUser -> linkSocialAccount(existingUser, socialType, socialId))
+                            .orElseGet(() -> saveUser(attributes, socialType));
+                });
+    }
+    
+    /**
+     * 기존 사용자에게 소셜 계정 연결
+     * 이미 일반 회원가입으로 가입된 사용자가 같은 이메일로 소셜 로그인하는 경우
+     */
+    private MemberEntity linkSocialAccount(MemberEntity existingUser, SocialType socialType, String socialId) {
+        log.info("기존 사용자에게 소셜 계정 연결: email={}, socialType={}", existingUser.getMemberEmail(), socialType);
+        
+        // 기존 사용자가 이미 다른 소셜 계정이 연결된 경우 경고 로그
+        if (existingUser.getSocialType() != null && !existingUser.getSocialType().equals(socialType)) {
+            log.warn("사용자가 이미 다른 소셜 계정을 연결하고 있음: existing={}, new={}", 
+                    existingUser.getSocialType(), socialType);
+        }
+        
+        // 소셜 정보 업데이트
+        existingUser.updateSocialInfo(socialType, socialId);
+        return userRepository.save(existingUser);
     }
 
     private MemberEntity saveUser(OAuthAttributes attributes, SocialType socialType) {

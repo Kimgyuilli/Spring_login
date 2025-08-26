@@ -13,6 +13,7 @@ import java.util.Map;
  */
 public class CustomOAuth2User extends DefaultOAuth2User {
 
+    private final String memberId;
     private final String email;
     private final Role role;
     private final SocialType socialType;
@@ -20,8 +21,9 @@ public class CustomOAuth2User extends DefaultOAuth2User {
     public CustomOAuth2User(Collection<? extends GrantedAuthority> authorities,
                             Map<String, Object> attributes,
                             String nameAttributeKey,
-                            String email, Role role, SocialType socialType) {
+                            String memberId, String email, Role role, SocialType socialType) {
         super(authorities, attributes, nameAttributeKey);
+        this.memberId = memberId;
         this.email = email;
         this.role = role;
         this.socialType = socialType;
@@ -42,5 +44,9 @@ public class CustomOAuth2User extends DefaultOAuth2User {
 
     public SocialType getSocialType() {
         return socialType;
+    }
+
+    public String getMemberId() {
+        return memberId;
     }
 }

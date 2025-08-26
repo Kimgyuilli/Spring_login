@@ -63,6 +63,11 @@ public class MemberEntity extends BaseTimeEntity {
         this.memberName = name;
         this.memberPassword = password;
     }
+    
+    public void updateSocialInfo(SocialType socialType, String socialId) {
+        this.socialType = socialType;
+        this.socialId = socialId;
+    }
 
 
 }

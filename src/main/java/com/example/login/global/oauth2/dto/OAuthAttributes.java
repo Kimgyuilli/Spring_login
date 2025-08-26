@@ -70,17 +70,19 @@ public class OAuthAttributes {
     }
 
     /**
-     * of메소드로 OAuthAttributes 객체가 생성되어, 유저 정보들이 담긴 OAuth2UserInfo가 소셜 타입별로 주입된 상태
-     * OAuth2UserInfo에서 socialId(식별값), nickname, imageUrl을 가져와서 build
-     * email에는 UUID로 중복 없는 랜덤 값 생성
-     * role은 GUEST로 설정
+     * OAuth2UserInfo에서 실제 사용자 정보를 가져와서 MemberEntity 생성
+     * - 실제 이메일 사용 (OAuth2 제공 이메일)
+     * - 소셜 타입과 소셜 ID 저장으로 중복 가입 방지
+     * - 기본 USER 권한 부여
      */
     public MemberEntity toEntity(SocialType socialType) {
         return MemberEntity.builder()
-                .memberEmail(UUID.randomUUID() + "@socialUser.com")
+                .memberEmail(oauth2UserInfo.getEmail())
                 .memberName(oauth2UserInfo.getNickname())
-                .memberPassword("SOCIAL_LOGIN_USER") // 소셜 로그인은 패스워드 없이 가입
-                .role(Role.GUEST)
+                .memberPassword(null) // 소셜 로그인은 패스워드 없음
+                .role(Role.USER) // 기본 사용자 권한
+                .socialType(socialType) // 소셜 타입 저장
+                .socialId(oauth2UserInfo.getId()) // 소셜 ID 저장
                 .build();
     }
 }
