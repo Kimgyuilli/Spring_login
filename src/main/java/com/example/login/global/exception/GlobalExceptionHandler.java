@@ -1,8 +1,8 @@
 package com.example.login.global.exception;
 
 import com.example.login.global.dto.CommonApiResponse;
-import com.example.login.global.response.ErrorType.ErrorCode;
-import com.example.login.global.response.ErrorType.ErrorType;
+import com.example.login.global.response.ErrorCode;
+import com.example.login.global.response.ErrorType;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

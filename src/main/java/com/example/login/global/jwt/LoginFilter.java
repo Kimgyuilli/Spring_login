@@ -1,7 +1,7 @@
 package com.example.login.global.jwt;
 
 import com.example.login.global.dto.CommonApiResponse;
-import com.example.login.global.response.ErrorType.ErrorCode;
+import com.example.login.global.response.ErrorCode;
 import com.example.login.domain.member.dto.request.MemberLoginRequest;
 import com.example.login.domain.member.security.CustomUserDetails;
 import com.example.login.domain.auth.service.AuthenticationService;

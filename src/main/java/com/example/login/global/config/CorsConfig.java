@@ -1,4 +1,4 @@
-package com.example.login.global.security;
+package com.example.login.global.config;
 
 import com.example.login.global.config.properties.SecurityProperties;
 import lombok.RequiredArgsConstructor;

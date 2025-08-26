@@ -1,6 +1,6 @@
 package com.example.login.global.exception;
 
-import com.example.login.global.response.ErrorType.ErrorType;
+import com.example.login.global.response.ErrorType;
 import lombok.Getter;
 
 @Getter

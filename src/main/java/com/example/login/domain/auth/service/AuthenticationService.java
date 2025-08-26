@@ -2,7 +2,7 @@ package com.example.login.domain.auth.service;
 
 import com.example.login.domain.auth.dto.response.TokenResponse;
 import com.example.login.global.exception.BaseException;
-import com.example.login.global.response.ErrorType.ErrorCode;
+import com.example.login.global.response.ErrorCode;
 import com.example.login.global.jwt.JwtTokenService;
 import com.example.login.global.jwt.JWTUtil;
 import com.example.login.domain.member.entity.MemberEntity;

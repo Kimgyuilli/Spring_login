@@ -1,4 +1,4 @@
-package com.example.login.global.security;
+package com.example.login.global.config;
 
 import com.example.login.global.oauth2.handler.OAuth2LoginFailureHandler;
 import com.example.login.global.oauth2.handler.OAuth2LoginSuccessHandler;

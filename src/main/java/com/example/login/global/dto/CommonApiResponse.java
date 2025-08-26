@@ -1,7 +1,7 @@
 package com.example.login.global.dto;
 
-import com.example.login.global.response.ErrorType.ErrorType;
-import com.example.login.global.response.SuccessType.MemberSuccessCode;
+import com.example.login.global.response.ErrorType;
+import com.example.login.global.response.MemberSuccessCode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 

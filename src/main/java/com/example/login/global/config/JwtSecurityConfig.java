@@ -1,4 +1,4 @@
-package com.example.login.global.security;
+package com.example.login.global.config;
 
 import com.example.login.domain.auth.service.AuthenticationService;
 import com.example.login.domain.auth.service.BlacklistService;

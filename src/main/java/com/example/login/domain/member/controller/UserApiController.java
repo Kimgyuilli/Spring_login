@@ -2,7 +2,7 @@ package com.example.login.domain.member.controller;
 
 import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.response.AutoApiResponse;
-import com.example.login.global.response.SuccessType.MemberSuccessCode;
+import com.example.login.global.response.MemberSuccessCode;
 import com.example.login.domain.member.dto.request.MemberUpdateRequest;
 import com.example.login.domain.member.dto.response.MemberResponse;
 import com.example.login.domain.member.service.MemberService;

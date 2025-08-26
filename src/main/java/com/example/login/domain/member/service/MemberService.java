@@ -3,7 +3,7 @@ package com.example.login.domain.member.service;
 
 import com.example.login.global.config.properties.SecurityProperties;
 import com.example.login.global.exception.BaseException;
-import com.example.login.global.response.ErrorType.ErrorCode;
+import com.example.login.global.response.ErrorCode;
 import com.example.login.domain.member.entity.MemberEntity;
 import com.example.login.domain.member.entity.Role;
 import com.example.login.domain.member.dto.request.MemberSaveRequest;

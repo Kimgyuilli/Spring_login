@@ -1,7 +1,7 @@
 package com.example.login.global.response;
 
 import com.example.login.global.dto.CommonApiResponse;
-import com.example.login.global.response.SuccessType.MemberSuccessCode;
+import com.example.login.global.response.MemberSuccessCode;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;

@@ -1,4 +1,4 @@
-package com.example.login.global.response.SuccessType;
+package com.example.login.global.response;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

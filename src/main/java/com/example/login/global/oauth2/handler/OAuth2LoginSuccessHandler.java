@@ -6,7 +6,7 @@ import com.example.login.global.dto.CommonApiResponse;
 import com.example.login.global.oauth2.service.OAuth2TokenService;
 import com.example.login.global.oauth2.dto.OAuthLoginResponse;
 import com.example.login.global.oauth2.user.CustomOAuth2User;
-import com.example.login.global.response.SuccessType.MemberSuccessCode;
+import com.example.login.global.response.MemberSuccessCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

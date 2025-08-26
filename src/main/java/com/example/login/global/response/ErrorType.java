@@ -1,4 +1,4 @@
-package com.example.login.global.response.ErrorType;
+package com.example.login.global.response;
 
 public interface ErrorType {
     String getCode();

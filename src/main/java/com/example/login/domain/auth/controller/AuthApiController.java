@@ -1,7 +1,7 @@
 package com.example.login.domain.auth.controller;
 
 import com.example.login.global.dto.CommonApiResponse;
-import com.example.login.global.response.SuccessType.MemberSuccessCode;
+import com.example.login.global.response.MemberSuccessCode;
 import com.example.login.domain.auth.service.AuthenticationService;
 import com.example.login.domain.auth.dto.response.TokenResponse;
 import io.swagger.v3.oas.annotations.Operation;

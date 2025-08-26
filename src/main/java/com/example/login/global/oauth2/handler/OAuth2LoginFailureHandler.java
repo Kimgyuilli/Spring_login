@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
-import com.example.login.global.response.ErrorType.ErrorCode;
+import com.example.login.global.response.ErrorCode;
 
 import java.io.IOException;
 

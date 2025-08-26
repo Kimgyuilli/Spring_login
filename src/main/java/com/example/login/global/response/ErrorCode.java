@@ -1,5 +1,5 @@
 // ErrorCode.java
-package com.example.login.global.response.ErrorType;
+package com.example.login.global.response;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
